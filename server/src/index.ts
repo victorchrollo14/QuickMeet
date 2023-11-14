@@ -24,11 +24,11 @@ app.use(bodyParser.json());
 app.use("/user", userRouter);
 
 const config = {
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
+  user: "postgres",
+  host: "localhost",
+  database: "techtalk",
   password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
+  port: Number(process.env.DB_PORT) || 5432,
 };
 
 const pool = new Pool(config);
