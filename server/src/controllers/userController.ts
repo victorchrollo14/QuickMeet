@@ -19,10 +19,11 @@ const login = async (req: Request, res: Response, data: data) => {
 
     const query = `SELECT * FROM users WHERE email=$1`;
     const user = await pool.query(query, [email]);
+    console.log(user.rowCount);
 
     // if user doesn't exist we register them.
     if (user.rowCount < 1) {
-      const addUserQuery = `INSERT INTO users(username, email, profile_pic, locale) VALUES ($1, $2, $3, $4)`;
+      const addUserQuery = `INSERT INTO users(username, email, profile_pic, locale) VALUES($1, $2, $3, $4)`;
       const registerUser = await pool.query(addUserQuery, [
         name,
         email,
@@ -43,7 +44,6 @@ const login = async (req: Request, res: Response, data: data) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
       expiresIn: "30d",
     });
-
     res.status(200).json({ message: "logged in successfully", token: token });
   } catch (error) {
     console.log(error);

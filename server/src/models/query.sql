@@ -2,7 +2,7 @@ CREATE TABLE users(
     user_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username VARCHAR(50),
     email VARCHAR(50) NOT NULL UNIQUE,
-    profile_pic BYTEA,
+    profile_pic TEXT,
     locale VARCHAR(255)
 );
 
