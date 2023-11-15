@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { pool } from "../index";
 import jwt from "jsonwebtoken";
 import "dotenv/config.js";
+import { AuthenticatedRequest } from "../middleware/auth";
+import { log } from "console";
 
 interface data {
   sub: string;
@@ -37,8 +39,9 @@ const login = async (req: Request, res: Response, data: data) => {
     }
 
     const payload = {
-      email: user.rows[0].email,
+      email: email,
     };
+    console.log(payload);
 
     // generate jwt token
     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
@@ -51,4 +54,19 @@ const login = async (req: Request, res: Response, data: data) => {
   }
 };
 
-export { login };
+const getMe = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const query = `SELECT * FROM users WHERE email=$1`;
+    const user = await pool.query(query, [req.user.email]);
+    console.log(user);
+
+    res.status(200).json(user.rows[0]);
+
+    // const query = `SELECT * FROM users WHERE em`
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export { login, getMe };
