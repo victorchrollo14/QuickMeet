@@ -9,7 +9,11 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: [
+    "https://quickmeet.tech/",
+    "https://quickmeet-omega.vercel.app/",
+    "http://localhost/5173",
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -22,6 +26,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use("/user", userRouter);
+
+app.use("/get", (req, res) => {
+  res.send("Ok!");
+});
 
 const config = {
   user: "postgres",
