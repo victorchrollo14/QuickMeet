@@ -26,7 +26,7 @@ app.use("/user", userRouter);
 const config = {
   user: "postgres",
   host: "localhost",
-  database: "techtalk",
+  database: "quickmeet",
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT) || 5432,
 };
