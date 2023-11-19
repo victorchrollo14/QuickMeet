@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { pool } from "../index";
+import { pool } from "../services/database.js";
 import jwt from "jsonwebtoken";
 import "dotenv/config.js";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { log } from "console";
 
 interface data {
   sub: string;

@@ -1,9 +1,13 @@
 import express from "express";
 import "dotenv/config.js";
-import { Pool } from "pg";
 import cors from "cors";
 import bodyParser from "body-parser";
+import { createServer, Server } from "http";
+
+// Internal Imports
 import { userRouter } from "./routes/userRoute.js";
+import { connectDB } from "./services/database.js";
+import initSocketServer from "./services/socket.js";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -31,22 +35,15 @@ app.use("/get", (req, res) => {
   res.send("Ok!");
 });
 
-const config = {
-  user: "postgres",
-  host: "localhost",
-  database: "quickmeet",
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT) || 5432,
-};
-
-const pool = new Pool(config);
+const server: Server = createServer(app);
+const io = initSocketServer(server);
 
 const runServer = async () => {
   try {
-    await pool.connect();
+    await connectDB();
     console.log("connect to database");
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on :${PORT}`);
     });
   } catch (error) {
@@ -55,5 +52,3 @@ const runServer = async () => {
 };
 
 runServer();
-
-export { pool };
