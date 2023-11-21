@@ -4,7 +4,11 @@ import { Server as HttpServerType } from "http";
 const initSocketServer = (server: HttpServerType) => {
   const io = new Server(server, {
     cors: {
-      origin: ["http://localhost:5173"],
+      origin: [
+        "http://localhost:5173",
+        "https://quickmeet.tech",
+        "https://quickmeet-omega.vercel.app",
+      ],
     },
   });
 
@@ -38,12 +42,10 @@ const initSocketServer = (server: HttpServerType) => {
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
 
-      console.log(otherUsers);
-
       // sends message to other users in the particular room
       otherUsers.forEach((user: string) => {
         if (user !== socket.id) {
-          console.log(user, socket.id);
+          console.log(user, socket.id, otherUsers.length);
           io.to(user).emit("msg-to-client", message);
         }
       });

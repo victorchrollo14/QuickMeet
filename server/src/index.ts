@@ -14,9 +14,9 @@ const app = express();
 
 const corsOptions = {
   origin: [
-    "https://quickmeet.tech/",
-    "https://quickmeet-omega.vercel.app/",
-    "http://localhost/5173",
+    "https://quickmeet.tech",
+    "https://quickmeet-omega.vercel.app",
+    "http://localhost:5173",
   ],
   credentials: true,
   optionSuccessStatus: 200,
@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 
 app.use("/user", userRouter);
 
-app.use("/get", (req, res) => {
+app.use("/", (req, res) => {
   res.send("Ok!");
 });
 
