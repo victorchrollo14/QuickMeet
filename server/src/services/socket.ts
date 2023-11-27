@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { Server as HttpServerType } from "http";
+import { logger } from "..";
 
 const initSocketServer = (server: HttpServerType) => {
   const io = new Server(server, {
@@ -16,7 +17,7 @@ const initSocketServer = (server: HttpServerType) => {
   const users = {};
 
   io.on("connection", (socket) => {
-    console.log("a user connected", socket.id);
+    logger.info("a user connected", socket.id);
 
     socket.on("join", (params) => {
       const roomID = params.roomID;
@@ -33,11 +34,11 @@ const initSocketServer = (server: HttpServerType) => {
       }
 
       rooms[roomID].users.push(socket.id);
-      console.log("user added to room", roomID);
+      logger.info(`user added to room ${params.roomID}`);
     });
 
     socket.on("msg-to-server", (params) => {
-      console.log(params);
+      logger.info(params);
       const roomID = params.roomID;
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
@@ -45,7 +46,7 @@ const initSocketServer = (server: HttpServerType) => {
       // sends message to other users in the particular room
       otherUsers.forEach((user: string) => {
         if (user !== socket.id) {
-          console.log(user, socket.id, otherUsers.length);
+          logger.info(user, socket.id, otherUsers.length);
           io.to(user).emit("msg-to-client", message);
         }
       });

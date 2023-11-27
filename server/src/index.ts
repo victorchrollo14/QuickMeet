@@ -3,14 +3,34 @@ import "dotenv/config.js";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { createServer, Server } from "http";
+import winston from "winston";
 
 // Internal Imports
 import { userRouter } from "./routes/userRoute.js";
 import { connectDB } from "./services/database.js";
 import initSocketServer from "./services/socket.js";
+import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  defaultMeta: { service: "user-service" },
+  transports: [
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "combined.log" }),
+  ],
+});
+
+if (process.env.NODE_ENV !== "production") {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
+}
 
 const corsOptions = {
   origin: [
@@ -31,9 +51,13 @@ app.use(bodyParser.json());
 
 app.use("/user", userRouter);
 
-app.use("/", (req, res) => {
-  res.send("Ok!");
+app.get("/", (req, res) => {
+  res.status(200).send("Ok!");
 });
+
+// error handler middleware
+app.use(notFound);
+app.use(errorHandler);
 
 const server: Server = createServer(app);
 const io = initSocketServer(server);
@@ -52,3 +76,5 @@ const runServer = async () => {
 };
 
 runServer();
+
+export { logger };
