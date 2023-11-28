@@ -13,9 +13,9 @@ CREATE TABLE meetings(
     meeting_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT,
     guest_id INT,
-    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    start_time TIMESTAMP,
     end_time TIMESTAMP,
-    code VARCHAR(50),
+    room_id VARCHAR(50),
     status status NOT NULL,
     UNIQUE(meeting_id, user_id),
     CHECK(
@@ -55,15 +55,15 @@ CREATE TABLE messages(
 -- anonymous users 
 CREATE TABLE guests(
     guest_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    username VARCHAR(60) DEFAULT 'guest',
+    username VARCHAR(60) DEFAULT 'guest'
 );
 
 CREATE TABLE guest_meetings(
     meeting_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     guest_id INT,
-    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    start_time TIMESTAMP,
     end_time TIMESTAMP,
-    code VARCHAR(50),
+    room_id VARCHAR(50),
     status status NOT NULL,
     UNIQUE(meeting_id, guest_id),
     CHECK(

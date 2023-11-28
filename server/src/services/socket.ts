@@ -63,7 +63,7 @@ const initSocketServer = (server: HttpServerType) => {
       console.log(socket.id, "user disconnected");
     });
   });
-
+  
   return io;
 };
 

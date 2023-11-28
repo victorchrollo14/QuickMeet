@@ -7,6 +7,7 @@ import winston from "winston";
 
 // Internal Imports
 import { userRouter } from "./routes/userRoute.js";
+import { meetRouter } from "./routes/meetRoutes.js";
 import { connectDB } from "./services/database.js";
 import initSocketServer from "./services/socket.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -17,10 +18,10 @@ const app = express();
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
-  defaultMeta: { service: "user-service" },
+  // defaultMeta: { service: "user-service" },
   transports: [
-    new winston.transports.File({ filename: "error.log", level: "error" }),
-    new winston.transports.File({ filename: "combined.log" }),
+    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
+    new winston.transports.File({ filename: "logs/combined.log" }),
   ],
 });
 
@@ -50,6 +51,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use("/user", userRouter);
+app.use("/meet", meetRouter);
 
 app.get("/", (req, res) => {
   res.status(200).send("Ok!");
