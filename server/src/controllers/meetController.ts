@@ -32,6 +32,8 @@ const createRegMeet = async (user_id: string, roomID: string) => {
 
   return {
     role: "host",
+    roomType: "private",
+    meetingID: meeting_id,
     roomID: roomID,
     message: `created a meet and added user has host`,
   };
@@ -47,16 +49,19 @@ const createGuestMeet = async (roomID: string) => {
   const guest_id = guestUser.rows[0].guest_id;
   console.log(`created a new guest user and got guest_id: ${guest_id}`);
 
-  const query1 = `INSERT INTO guest_meetings(guest_id, room_id, status) VALUES($1, $2, $3)`;
+  const query1 = `INSERT INTO guest_meetings(guest_id, room_id, status) VALUES($1, $2, $3) RETURNING meeting_id`;
   const guestMeet = await pool.query(query1, [guest_id, roomID, "initiated"]);
   if (guestMeet.rowCount !== 1) {
     throw new Error("Error while creating a guest meeting");
   }
+  const meeting_id = guestMeet.rows[0].meeting_id;
   console.log(`${guestMeet.rowCount} guest Meet created`);
 
   return {
     role: "host",
-    guest_id: guest_id,
+    roomType: "public",
+    meetingID: meeting_id,
+    guestID: guest_id,
     roomID: roomID,
     message: "created a guest meeting successfully",
   };
@@ -86,4 +91,55 @@ const createMeet = async (req: Request, res: Response) => {
   }
 };
 
-export { createMeet };
+const startMeet = async (params: {
+  userID: string;
+  roomID: string;
+  meetingID: string;
+  roomType: string;
+  role: string;
+}) => {
+  try {
+    const { userID, roomID, meetingID, roomType } = params;
+
+    if (roomType === "private") {
+      console.log("starting the meeting of a registered user...");
+
+      const query = `UPDATE meetings SET start_time=CURRENT_TIMESTAMP, status=$1 WHERE user_id=$2 AND room_id=$3 AND meeting_id=$4`;
+      const updateMeet = await pool.query(query, [
+        "active",
+        userID,
+        roomID,
+        meetingID,
+      ]);
+      if (updateMeet.rowCount !== 1) {
+        console.log("Error occured while changing meet status to active");
+        return { status: "error" };
+      }
+
+      console.log("updated meeting start time and status to active....");
+      return { status: "ok" };
+    }
+
+    // guest user
+    console.log("starting the meeting of guest user....");
+
+    const query = `UPDATE guest_meetings SET start_time=CURRENT_TIMESTAMP, status=$1 WHERE guest_id=$2 AND room_id=$3 AND meeting_id=$4`;
+    const updateMeet = await pool.query(query, [
+      "active",
+      userID,
+      roomID,
+      meetingID,
+    ]);
+    if (updateMeet.rowCount !== 1) {
+      console.log("Error occured while changing meet status to active");
+      return { status: "error" };
+    }
+
+    console.log("updated guest_meeting start time and status to active...");
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { createMeet, startMeet };

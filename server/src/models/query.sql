@@ -12,7 +12,6 @@ CREATE TYPE status AS ENUM ('active', 'ended', 'initiated');
 CREATE TABLE meetings(
     meeting_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT,
-    guest_id INT,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
     room_id VARCHAR(50),
@@ -23,7 +22,6 @@ CREATE TABLE meetings(
         OR end_time IS NULL
     ),
     FOREIGN KEY(user_id) REFERENCES users(user_id),
-    FOREIGN KEY(guest_id) REFERENCES guests(guest_id)
 );
 
 -- enum type for role

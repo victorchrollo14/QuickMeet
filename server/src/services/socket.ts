@@ -1,6 +1,17 @@
 import { Server } from "socket.io";
 import { Server as HttpServerType } from "http";
 import { logger } from "..";
+import { startMeet } from "../controllers/meetController";
+
+interface joinHost {
+  username: string;
+  userID: string;
+  roomID: string;
+  meetingID: string;
+  roomType: string;
+  role: string;
+  userType: string;
+}
 
 const initSocketServer = (server: HttpServerType) => {
   const io = new Server(server, {
@@ -15,26 +26,40 @@ const initSocketServer = (server: HttpServerType) => {
 
   const rooms = {};
   const users = {};
+  const guests = {};
 
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
-    socket.on("join", (params) => {
-      const roomID = params.roomID;
-      users[socket.id] = {
-        roomID: roomID,
-      };
+    socket.on("join-host", async (params: joinHost) => {
+      const { userID, roomID, meetingID, roomType, role, userType, username } =
+        params;
 
-      // create a new room if it doesn't exist
-      if (!rooms[roomID]) {
-        rooms[roomID] = {
-          roomID: roomID,
-          users: [],
-        };
+      const response = await startMeet(params);
+
+      if (response.status === "error") {
+        socket._error("some error occurred");
       }
 
-      rooms[roomID].users.push(socket.id);
-      logger.info(`user added to room ${params.roomID}`);
+      if (response.status === "ok") {
+        users[socket.id] = {
+          roomID: roomID,
+          userID: userID,
+          username: username,
+          role: role,
+          type: userType,
+        };
+
+        rooms[roomID] = {
+          roomID: roomID,
+          meetingID: meetingID,
+          users: [],
+          type: roomType,
+        };
+        rooms[roomID].users.push(socket.id);
+        logger.info(`user added to room ${params.roomID}`);
+        console.log(rooms, users);
+      }
     });
 
     socket.on("msg-to-server", (params) => {
@@ -63,7 +88,7 @@ const initSocketServer = (server: HttpServerType) => {
       console.log(socket.id, "user disconnected");
     });
   });
-  
+
   return io;
 };
 
