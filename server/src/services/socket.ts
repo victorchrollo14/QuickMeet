@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import { Server as HttpServerType } from "http";
 import { logger } from "..";
 import { startMeet } from "../controllers/meetController";
+import { createGuest } from "../controllers/guestController";
+import { handleJoin } from "../controllers/socketController";
 
 interface joinHost {
   username: string;
@@ -63,28 +65,8 @@ const initSocketServer = (server: HttpServerType) => {
     });
 
     socket.on("join", (params) => {
-      const { userID, userType, roomID, username } = params;
-      // registered user: private room or guest room;
-      // guest user: guest room, send a message if he tries to join private room,
-      // that the data will be saved.
-      const roomType = rooms[roomID].roomType;
-
-      if (userType === "guest" && roomType === "public") {
-        // register in guests table.
-      } else if (userType === "guest" && roomType === "private") {
-      } else if (userType === "registered" && roomType === "private") {
-      } else {
-        users[socket.id] = {
-          roomID: roomID,
-          user_id: userID,
-          username: username,
-          role: "attendee",
-          type: userType,
-        };
-
-        rooms[roomID].users.push(socket.id);
-        console.log(username, "added to room:", roomID);
-      }
+      // takes care of user join operation.
+      handleJoin(socket, params, rooms, users);
     });
 
     socket.on("msg-to-server", (params) => {
