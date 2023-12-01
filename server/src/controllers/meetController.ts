@@ -142,7 +142,7 @@ const startMeet = async (params: {
       return { status: "ok" };
     }
 
-    const query = `UPDATE guest_meetings SET start_time=CURRENT_TIMESTAMP, status=active WHERE guest_id=$2 AND room_id=$3 AND meeting_id=$4`;
+    const query = `UPDATE guest_meetings SET start_time=CURRENT_TIMESTAMP, status=active WHERE guest_id=$1 AND room_id=$2 AND meeting_id=$3`;
     const updateMeet = await pool.query(query, queryParams);
     if (updateMeet.rowCount !== 1) {
       console.log("Error occured while changing meet status to active\n");

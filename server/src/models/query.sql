@@ -33,6 +33,8 @@ CREATE TABLE participants(
     guest_id INT,
     meeting_id INT,
     role role NOT NULL,
+    UNIQUE(user_id, meeting_id),
+    UNIQUE(guest_id, meeting_id),
     FOREIGN KEY(user_id) REFERENCES users(user_id),
     FOREIGN KEY(meeting_id) REFERENCES meetings(meeting_id),
     FOREIGN KEY(guest_id) REFERENCES guests(guest_id)

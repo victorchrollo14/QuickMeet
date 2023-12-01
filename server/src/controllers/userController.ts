@@ -53,6 +53,32 @@ const login = async (req: Request, res: Response, data: data) => {
   }
 };
 
+const addParticipant = async (userID: string, meetingID: string) => {
+  try {
+    const query1 = `SELECT user_id from participants WHERE user_id=$1 AND meeting_id=$2`;
+    const checkParticipant = await pool.query(query1, [userID, meetingID]);
+
+    if (checkParticipant.rowCount > 0) {
+      console.log(
+        "participant is already added, seems like a reconnection...."
+      );
+      return { status: "ok" };
+    }
+
+    const query = `INSERT INTO participants(user_id, meeting_id, role) VALUES($1, $2, 'attendee')`;
+    const addParticipant = await pool.query(query, [userID, meetingID]);
+    if (addParticipant.rowCount !== 1) {
+      console.log("Some error occured while updating participants table.");
+      return { status: "error" };
+    }
+
+    console.log(`added user:${userID} as a participant`);
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const getMe = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const query = `SELECT * FROM users WHERE email=$1`;
@@ -68,4 +94,4 @@ const getMe = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export { login, getMe };
+export { login, getMe, addParticipant };
