@@ -73,7 +73,7 @@ const initSocketServer = (server: HttpServerType) => {
       const roomID = params.roomID;
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
-
+console.log(message);
       // sends message to other users in the particular room
       otherUsers.forEach((user: string) => {
         if (user !== socket.id) {
