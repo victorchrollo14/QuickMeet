@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { logger } from "../index.js";
 import ShortUniqueId from "short-unique-id";
 import { pool } from "../services/database.js";
+import { AuthenticatedRequest, verifyToken } from "../middleware/auth.js";
 
 const generateRoom = () => {
   const { randomUUID } = new ShortUniqueId({ length: 12 });
@@ -67,7 +68,7 @@ const createGuestMeet = async (roomID: string) => {
   };
 };
 
-const createMeet = async (req: Request, res: Response) => {
+const createMeet = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { userID } = req.body;
     // generate roomID.
@@ -76,6 +77,9 @@ const createMeet = async (req: Request, res: Response) => {
 
     // if user is registered
     if (req.headers.authorization) {
+      const token = req.header("Authorization");
+      await verifyToken(token);
+      console.log("user is verified");
       const data = await createRegMeet(userID, roomID);
       return res.status(200).json(data);
     }
@@ -87,7 +91,7 @@ const createMeet = async (req: Request, res: Response) => {
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -113,8 +117,6 @@ const startMeet = async (params: {
         await pool.query(statusQuery, queryParams)
       ).rows[0].status;
 
-      console.log(status);
-
       if (status === "active") {
         console.log(
           "The meeting is already active, seems like the host got disconnected and connected..."
@@ -125,8 +127,8 @@ const startMeet = async (params: {
       const query = `UPDATE meetings SET start_time=CURRENT_TIMESTAMP, status='active' WHERE user_id=$1 AND room_id=$2 AND meeting_id=$3`;
       const updateMeet = await pool.query(query, queryParams);
       if (updateMeet.rowCount !== 1) {
-        console.log("Error occured while changing meet status to active....\n");
-        return { status: "error" };
+        console.log("invalid credentials");
+        return { status: "error", error: "Invalid credentials" };
       }
 
       console.log("updated meeting start time and status to active....\n");
@@ -154,8 +156,8 @@ const startMeet = async (params: {
     const query = `UPDATE guest_meetings SET start_time=CURRENT_TIMESTAMP, status='active' WHERE guest_id=$1 AND room_id=$2 AND meeting_id=$3`;
     const updateMeet = await pool.query(query, queryParams);
     if (updateMeet.rowCount !== 1) {
-      console.log("Error occured while changing meet status to active\n");
-      return { status: "error" };
+      console.log("Invalid credentials\n");
+      return { status: "error", error: "Invalid credentials" };
     }
 
     console.log("updated guest_meeting start time and status to active...\n");

@@ -33,39 +33,40 @@ const initSocketServer = (server: HttpServerType) => {
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
-    socket.on("join-host", async (params: joinHost) => {
-      const { userID, roomID, meetingID, roomType, role, userType, username } =
-        params;
+    // socket.on("join-host", async (params: joinHost) => {
+    //   const { userID, roomID, meetingID, roomType, role, userType, username } =
+    //     params;
 
-      const response = await startMeet(params);
+    //   const response = await startMeet(params);
 
-      if (response.status === "error") {
-        socket._error("some error occurred");
-      }
+    //   if (response.status === "error") {
+    //     socket._error("some error occurred");
+    //   }
 
-      if (response.status === "ok") {
-        users[socket.id] = {
-          roomID: roomID,
-          userID: userID,
-          username: username,
-          role: role,
-          type: userType,
-        };
+    //   if (response.status === "ok") {
+    //     users[socket.id] = {
+    //       roomID: roomID,
+    //       userID: userID,
+    //       username: username,
+    //       role: role,
+    //       type: userType,
+    //     };
 
-        rooms[roomID] = {
-          roomID: roomID,
-          meetingID: meetingID,
-          users: [],
-          type: roomType,
-        };
-        rooms[roomID].users.push(socket.id);
-        logger.info(`user added to room ${params.roomID}`);
-        console.log(rooms, users);
-      }
-    });
+    //     rooms[roomID] = {
+    //       roomID: roomID,
+    //       meetingID: meetingID,
+    //       users: [],
+    //       type: roomType,
+    //     };
+    //     rooms[roomID].users.push(socket.id);
+    //     logger.info(`user added to room ${params.roomID}`);
+    //     console.log(rooms, users);
+    //   }
+    // });
 
     socket.on("join", (params) => {
       // takes care of user join operation.
+      
       handleJoin(socket, params, rooms, users);
     });
 

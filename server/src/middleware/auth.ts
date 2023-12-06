@@ -6,7 +6,21 @@ export interface AuthenticatedRequest extends Request {
   user: any;
 }
 
-const verifyToken = async (
+const verifyToken = async (token: string) => {
+  if (!token) {
+    throw new Error("Unauthorized User");
+  }
+
+  if (token.startsWith("Bearer")) {
+    token = token.slice(7, token.length).trimStart();
+    console.log(token);
+  }
+
+  const verified = jwt.verify(token, process.env.JWT_SECRET_KEY) as any;
+  return verified;
+};
+
+const verifyTokenMiddleWare = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -15,19 +29,8 @@ const verifyToken = async (
     let token = req.header("Authorization");
     console.log(token);
 
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized User" });
-    }
-
-    if (token.startsWith("Bearer")) {
-      token = token.slice(7, token.length).trimStart();
-      console.log(token);
-    }
-    console.log(process.env.JWT_SECRET_KEY);
-
-    const verified = jwt.verify(token, process.env.JWT_SECRET_KEY) as any;
+    const verified = await verifyToken(token);
     req.user = verified;
-    console.log(verified);
 
     console.log(req.user);
     next();
@@ -37,4 +40,4 @@ const verifyToken = async (
   }
 };
 
-export { verifyToken };
+export { verifyToken, verifyTokenMiddleWare };
