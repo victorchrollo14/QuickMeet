@@ -2,22 +2,67 @@ import { Socket } from "socket.io";
 import { createGuest } from "./guestController";
 import { addParticipant } from "./userController";
 import { addGuestParticipant } from "./guestController";
+import { startMeet } from "./meetController";
+import { logger } from "..";
 
 export interface joinParameters {
   userID: string | null;
   username: string | null;
-  roomID: string;
   userType: string;
+  role: string | null;
+  meetingID: string | null;
+  roomID: string;
+  roomType: string | null;
 }
+
+const joinHost = async (
+  socket: Socket,
+  params: joinParameters,
+  rooms: Object,
+  users: Object
+) => {
+  const { roomID, userID, username, role, userType, roomType, meetingID } =
+    params;
+  const response = await startMeet(params);
+
+  if (response.status === "error") {
+    throw new Error("Invalid credentials");
+  } else if (response.status === "ok") {
+    users[socket.id] = {
+      roomID: roomID,
+      userID: userID,
+      username: username,
+      role: role,
+      type: userType,
+    };
+
+    rooms[roomID] = {
+      roomID: roomID,
+      meetingID: meetingID,
+      users: [],
+      type: roomType,
+    };
+    rooms[roomID].users.push(socket.id);
+    logger.info(`host added to room ${params.roomID}`);
+    console.log(rooms, users);
+  }
+};
 
 const handleJoin = async (
   socket: Socket,
   params: joinParameters,
-  rooms: {},
-  users: {}
+  rooms: Object,
+  users: Object
 ) => {
   try {
-    let { userID, userType, roomID, username } = params;
+    let { userID, userType, roomID, username, roomType, meetingID, role } =
+      params;
+
+    console.log(params);
+
+    if (role === "host") {
+      return joinHost(socket, params, rooms, users);
+    }
 
     // checking if there is an active meeting with the roomID.
     const roomExists = Object.keys(rooms).find((id) => id === roomID);
@@ -27,8 +72,8 @@ const handleJoin = async (
       });
     }
 
-    const roomType = rooms[roomID].type;
-    const meetingID = rooms[roomID].meetingID;
+    roomType = rooms[roomID].type;
+    meetingID = rooms[roomID].meetingID;
 
     // guest user joining public meeting.
     if (userType === "guest" && roomType === "public") {

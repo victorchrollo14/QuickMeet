@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { googleAuth } from "../services/googleAuth";
-import { verifyToken } from "../middleware/auth";
+import { verifyTokenMiddleWare } from "../middleware/auth";
 import { getMe } from "../controllers/userController";
 
 const userRouter = Router();
 
 userRouter.get("/login", googleAuth);
-userRouter.get("/me", verifyToken, getMe);
+userRouter.get("/me", verifyTokenMiddleWare, getMe);
 
 export { userRouter };
