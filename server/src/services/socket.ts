@@ -40,7 +40,7 @@ const initSocketServer = (server: HttpServerType) => {
     });
 
     socket.on("msg-to-server", (params) => {
-<<<<<<< HEAD
+
       const roomID = params.roomID;
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
@@ -52,9 +52,9 @@ console.log(message);
           io.to(user).emit("msg-to-client", message);
         }
       });
-=======
+
       handleMessages(io, socket, params, rooms, users);
->>>>>>> d8b8210cdf306b05f386861815969d39fb3a4cee
+
     });
 
     socket.on("disconnect", () => {
