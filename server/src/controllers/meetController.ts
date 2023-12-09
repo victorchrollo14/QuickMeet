@@ -113,9 +113,8 @@ const startMeet = async (params: {
       console.log(queryParams);
 
       const statusQuery = `SELECT status FROM meetings WHERE user_id=$1 AND room_id=$2 AND meeting_id=$3`;
-      const status = await (
-        await pool.query(statusQuery, queryParams)
-      ).rows[0].status;
+      const status = (await pool.query(statusQuery, queryParams)).rows[0]
+        .status;
 
       if (status === "active") {
         console.log(

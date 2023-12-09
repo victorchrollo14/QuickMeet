@@ -76,9 +76,11 @@ CREATE TABLE guest_meetings(
 CREATE TABLE guest_messages(
     message_id INT GENERATED ALWAYS AS IDENTITY,
     guest_id INT,
+    user_id INT,
     meeting_id INT,
     content TEXT,
     message_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(user_id),
     FOREIGN KEY(guest_id) REFERENCES guests(guest_id),
     FOREIGN KEY(meeting_id) REFERENCES guest_meetings(meeting_id)
 )
