@@ -3,7 +3,7 @@ import { Server as HttpServerType } from "http";
 import { logger } from "..";
 import { startMeet } from "../controllers/meetController";
 import { createGuest } from "../controllers/guestController";
-import { handleJoin } from "../controllers/socketController";
+import { handleJoin, handleMessages } from "../controllers/socketController";
 
 interface joinHost {
   username: string;
@@ -33,44 +33,14 @@ const initSocketServer = (server: HttpServerType) => {
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
-    // socket.on("join-host", async (params: joinHost) => {
-    //   const { userID, roomID, meetingID, roomType, role, userType, username } =
-    //     params;
-
-    //   const response = await startMeet(params);
-
-    //   if (response.status === "error") {
-    //     socket._error("some error occurred");
-    //   }
-
-    //   if (response.status === "ok") {
-    //     users[socket.id] = {
-    //       roomID: roomID,
-    //       userID: userID,
-    //       username: username,
-    //       role: role,
-    //       type: userType,
-    //     };
-
-    //     rooms[roomID] = {
-    //       roomID: roomID,
-    //       meetingID: meetingID,
-    //       users: [],
-    //       type: roomType,
-    //     };
-    //     rooms[roomID].users.push(socket.id);
-    //     logger.info(`user added to room ${params.roomID}`);
-    //     console.log(rooms, users);
-    //   }
-    // });
-
+    // takes care of user and host joining the meet.
     socket.on("join", (params) => {
-      // takes care of user join operation.
-      
       handleJoin(socket, params, rooms, users);
+      console.log(rooms, users);
     });
 
     socket.on("msg-to-server", (params) => {
+<<<<<<< HEAD
       const roomID = params.roomID;
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
@@ -82,6 +52,9 @@ console.log(message);
           io.to(user).emit("msg-to-client", message);
         }
       });
+=======
+      handleMessages(io, socket, params, rooms, users);
+>>>>>>> d8b8210cdf306b05f386861815969d39fb3a4cee
     });
 
     socket.on("disconnect", () => {
