@@ -5,6 +5,26 @@ const errorResponse = {
   error: "you might have entered wrong user_id or meeting_id",
 };
 
+const getAllMessagesFromPrivate = async (
+  meetingID: string
+) => {
+  console.log("get all messages meetingID",meetingID)
+  const query = `SELECT * FROM messages WHERE meeting_id=$1`
+  const messages = (await pool.query(query, [meetingID])).rows
+  console.log(messages,query)
+  return messages
+}
+
+const getAllMessagesFromPublic = async (
+  meetingID: string
+) => {
+  console.log("get all messages meetingID",meetingID)
+  const query = `SELECT * FROM guest_messages WHERE meeting_id=$1`
+  const messages = (await pool.query(query, [meetingID])).rows
+  console.log(messages)
+  return messages
+}
+
 const saveRegToPrivate = async (
   userID: string,
   meetingID: string,
@@ -65,4 +85,4 @@ const saveGstToPublic = async (
   return { status: "ok" };
 };
 
-export { saveGstToPrivate, saveRegToPrivate, saveGstToPublic, saveRegToPublic };
+export { saveGstToPrivate, saveRegToPrivate, saveGstToPublic, saveRegToPublic , getAllMessagesFromPrivate, getAllMessagesFromPublic };

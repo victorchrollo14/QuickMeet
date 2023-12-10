@@ -35,6 +35,7 @@ const initSocketServer = (server: HttpServerType) => {
 
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
+      console.log("hello")
       handleJoin(socket, params, rooms, users);
       console.log(rooms, users);
     });
@@ -44,7 +45,7 @@ const initSocketServer = (server: HttpServerType) => {
       const roomID = params.roomID;
       const message = params.message;
       const otherUsers = rooms[roomID].users; // selecting all users from your room
-console.log(message);
+      console.log(message);
       // sends message to other users in the particular room
       otherUsers.forEach((user: string) => {
         if (user !== socket.id) {
@@ -56,6 +57,8 @@ console.log(message);
       handleMessages(io, socket, params, rooms, users);
 
     });
+
+    
 
     socket.on("disconnect", () => {
       // iterating on the room keys, then removing the user from the room
