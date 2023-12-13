@@ -1,11 +1,14 @@
 import { Server, Socket } from "socket.io";
 import {
+  getAllMessagesFromPrivate,
+  getAllMessagesFromPublic,
   saveGstToPrivate,
   saveGstToPublic,
   saveRegToPrivate,
   saveRegToPublic,
 } from "../DatabaseAPI/message.api";
 
+// pass
 const broadCastMessage = async (
   io: Server,
   socket: Socket,
@@ -54,10 +57,43 @@ const broadCastMessage = async (
         io.to(user).emit("msg-to-client", message);
       }
     });
-  } catch (error) {
-    console.log(error);
-    socket.emit("error", { error: error });
+  } catch (err) {
+    console.log(err);
+    socket.emit("error", err.message);
   }
 };
 
-export { broadCastMessage };
+// pass
+const getAllMessages = async (
+  socket: Socket,
+  params: { meetingID: string; roomType: string }
+) => {
+  try {
+    let data;
+    const { meetingID, roomType } = params;
+    console.log(`meetingID: ${meetingID}`);
+    const roomTypeVal = ["public", "private"];
+
+    if (!meetingID || !roomTypeVal.includes(roomType)) {
+      return socket.emit("error", {
+        error:
+          "You have passed some invalid parameters, your meetingID is either null or wrong roomType",
+      });
+    }
+
+    if (roomType === "private") {
+      data = await getAllMessagesFromPrivate(meetingID);
+      console.log(data);
+    } else if (roomType === "public") {
+      data = await getAllMessagesFromPublic(meetingID);
+      console.log(data);
+    }
+
+    socket.emit("all-messages", { messsages: data });
+  } catch (err) {
+    console.log(err);
+    socket.emit("error", err.message);
+  }
+};
+
+export { broadCastMessage, getAllMessages };

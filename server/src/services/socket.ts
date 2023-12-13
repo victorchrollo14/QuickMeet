@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import { Server as HttpServerType } from "http";
 import { logger } from "..";
 import { joinMeet } from "../controllers/joinController";
-import { broadCastMessage } from "../controllers/msgController";
+import { broadCastMessage, getAllMessages } from "../controllers/msgController";
 
 interface joinHost {
   username: string;
@@ -43,6 +43,7 @@ const initSocketServer = (server: HttpServerType) => {
 
     socket.on("all-messages", (params) => {
       // allMessages controller.
+      getAllMessages(socket, params);
     });
 
     // video parts

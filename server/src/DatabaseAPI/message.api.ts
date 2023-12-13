@@ -1,26 +1,30 @@
 import { pool } from "../services/database";
 
-const errorResponse = {
-  status: "error",
-  error: "you might have entered wrong user_id or meeting_id",
-};
-
+// pass
 const getAllMessagesFromPrivate = async (meetingID: string) => {
-  console.log("get all messages meetingID", meetingID);
-  const query = `SELECT * FROM messages WHERE meeting_id=$1`;
-  const messages = (await pool.query(query, [meetingID])).rows;
-  // console.log(messages,query)
-  return messages;
+  try {
+    const query = `SELECT * FROM messages WHERE meeting_id=$1`;
+    const messages = (await pool.query(query, [meetingID])).rows;
+    // console.log(messages,query)
+    return messages;
+  } catch (err) {
+    throw new Error(err);
+  }
 };
 
+// pass
 const getAllMessagesFromPublic = async (meetingID: string) => {
-  console.log("get all messages meetingID", meetingID);
-  const query = `SELECT * FROM guest_messages WHERE meeting_id=$1`;
-  const messages = (await pool.query(query, [meetingID])).rows;
-  // console.log(messages)
-  return messages;
+  try {
+    const query = `SELECT * FROM guest_messages WHERE meeting_id=$1`;
+    const messages = (await pool.query(query, [meetingID])).rows;
+    // console.log(messages)
+    return messages;
+  } catch (err) {
+    throw new Error(err);
+  }
 };
 
+//pass
 const saveRegToPrivate = async (
   userID: string,
   meetingID: string,
@@ -46,6 +50,7 @@ const saveRegToPrivate = async (
   }
 };
 
+//pass
 const saveGstToPrivate = async (
   guestID: string,
   meetingID: string,
