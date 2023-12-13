@@ -5,9 +5,9 @@
   "main": "node src/index.ts",
   "scripts": {
     "build": "tsc",
-    "dev":"tsc --watch",
+    "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=development nodemon --watch --trace-warnings dist/index.js"
+    "start": "NODE_ENV=development node --watch dist/index.js"
   },
   "keywords": [],
   "author": "",

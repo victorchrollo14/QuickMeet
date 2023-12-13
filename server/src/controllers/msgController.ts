@@ -1,88 +1,63 @@
-import { pool } from "../services/database";
+import { Server, Socket } from "socket.io";
+import {
+  saveGstToPrivate,
+  saveGstToPublic,
+  saveRegToPrivate,
+  saveRegToPublic,
+} from "../DatabaseAPI/message.api";
 
-const errorResponse = {
-  status: "error",
-  error: "you might have entered wrong user_id or meeting_id",
-};
-
-const getAllMessagesFromPrivate = async (
-  meetingID: string
+const broadCastMessage = async (
+  io: Server,
+  socket: Socket,
+  params: { message: string },
+  rooms: object,
+  users: object
 ) => {
-  console.log("get all messages meetingID",meetingID)
-  const query = `SELECT * FROM messages WHERE meeting_id=$1`
-  const messages = (await pool.query(query, [meetingID])).rows
-  console.log(messages,query)
-  return messages
-}
+  try {
+    let response;
+    const roomID = users[socket.id].roomID;
+    const message = params.message;
 
-const getAllMessagesFromPublic = async (
-  meetingID: string
-) => {
-  console.log("get all messages meetingID",meetingID)
-  const query = `SELECT * FROM guest_messages WHERE meeting_id=$1`
-  const messages = (await pool.query(query, [meetingID])).rows
-  console.log(messages)
-  return messages
-}
+    const roomType = rooms[roomID].type;
+    const meetingID = rooms[roomID].meetingID;
+    const userType = users[socket.id].type;
+    const userID = users[socket.id].userID;
 
-const saveRegToPrivate = async (
-  userID: string,
-  meetingID: string,
-  message: string
-) => {
-  const query = `INSERT INTO messages(user_id, meeting_id, content) VALUES($1, $2, $3)`;
-  const insertMessage = await pool.query(query, [userID, meetingID, message]);
+    console.log(roomType, userType, userID, meetingID);
+    console.log(`"` + message + '"' + " from user" + users[socket.id].userID);
 
-  if (insertMessage.rowCount !== 1) {
-    return errorResponse;
+    if (roomType === "public" && userType === "guest") {
+      console.log("saving the guest user message in public meeting....");
+      response = await saveGstToPublic(userID, meetingID, message);
+    } else if (roomType === "public" && userType === "registered") {
+      console.log("saving the registered  user message in public meeting....");
+      response = await saveRegToPublic(userID, meetingID, message);
+    } else if (roomType === "private" && userType === "registered") {
+      console.log("saving the registered  user message in private meeting....");
+      response = await saveRegToPrivate(userID, meetingID, message);
+    } else if (roomType === "private" && userType === "guest") {
+      console.log("saving the guest  user message in private meeting....");
+      response = await saveGstToPrivate(userID, meetingID, message);
+    }
+
+    if (response?.status === "error") {
+      console.log(response.error);
+      return socket.emit("error", "Unable to send message");
+    }
+
+    const otherUsers = rooms[roomID].users; // selecting all users from your room
+
+    // sends message to other users in the particular room
+    otherUsers.forEach((user: string) => {
+      if (user !== socket.id) {
+        console.log(user, otherUsers);
+        io.to(user).emit("msg-to-client", message);
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    socket.emit("error", { error: error });
   }
-
-  return { status: "ok" };
 };
 
-const saveGstToPrivate = async (
-  guestID: string,
-  meetingID: string,
-  message: string
-) => {
-  const query = `INSERT INTO messages(guest_id, meeting_id, content) VALUES($1, $2, $3)`;
-  const insertMessage = await pool.query(query, [guestID, meetingID, message]);
-
-  if (insertMessage.rowCount !== 1) {
-    return errorResponse;
-  }
-
-  return { status: "ok" };
-};
-
-const saveRegToPublic = async (
-  userID: string,
-  meetingID: string,
-  message: string
-) => {
-  const query = `INSERT INTO guest_messages(user_id, meeting_id, content) VALUES($1, $2, $3)`;
-  const insertMessage = await pool.query(query, [userID, meetingID, message]);
-
-  if (insertMessage.rowCount !== 1) {
-    return errorResponse;
-  }
-
-  return { status: "ok" };
-};
-
-const saveGstToPublic = async (
-  guestID: string,
-  meetingID: string,
-  message: string
-) => {
-  const query = `INSERT INTO guest_messages(guest_id, meeting_id, content) VALUES($1, $2, $3)`;
-  const insertMessage = await pool.query(query, [guestID, meetingID, message]);
-
-  if (insertMessage.rowCount !== 1) {
-    return errorResponse;
-  }
-
-  return { status: "ok" };
-};
-
-export { saveGstToPrivate, saveRegToPrivate, saveGstToPublic, saveRegToPublic , getAllMessagesFromPrivate, getAllMessagesFromPublic };
+export { broadCastMessage };

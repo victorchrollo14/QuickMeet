@@ -1,18 +1,9 @@
-import { Server, Socket } from "socket.io";
+import { Socket } from "socket.io";
 import { createGuest } from "./guestController";
 import { addParticipant } from "./userController";
 import { addGuestParticipant } from "./guestController";
 import { startMeet } from "./meetController";
 import { logger } from "..";
-import { IOType } from "child_process";
-import {
-  saveGstToPrivate,
-  saveGstToPublic,
-  saveRegToPrivate,
-  saveRegToPublic,
-  getAllMessagesFromPrivate,
-  getAllMessagesFromPublic
-} from "./msgController";
 
 export interface joinParameters {
   userID: string | null;
@@ -56,15 +47,13 @@ const joinHost = async (
     rooms[roomID].users.push(socket.id);
 
     logger.info(`host added to room ${params.roomID}`);
-    console.log(rooms, users);
-    const messages = await getAllMessagesFromPrivate(meetingID)
-    console.log("here")
-    params.messages = messages
+
     socket.emit("join-response", { params: params });
+    console.log(rooms, users);
   }
 };
 
-const handleJoin = async (
+const joinMeet = async (
   socket: Socket,
   params: joinParameters,
   rooms: Object,
@@ -90,6 +79,8 @@ const handleJoin = async (
 
     roomType = rooms[roomID].type;
     meetingID = rooms[roomID].meetingID;
+    params.roomType = rooms[roomID].type;
+    params.meetingID = rooms[roomID].meetingID;
 
     // guest user joining public meeting.
     if (userType === "guest" && roomType === "public") {
@@ -105,8 +96,7 @@ const handleJoin = async (
 
         // send back the params so client can update on the client side for guest user.
       }
-      const messages = await getAllMessagesFromPublic(meetingID)
-      params.messages = messages
+
       socket.emit("join-response", { params: params });
 
       console.log(userID, username);
@@ -120,11 +110,10 @@ const handleJoin = async (
         const data = await createGuest();
         userID = data.userID;
         username = data.username;
-        params.userID = userID
-        params.username = username
+        params.userID = userID;
+        params.username = username;
       }
-      const messages = await getAllMessagesFromPrivate(meetingID)
-      params.messages = messages
+
       // send back the params so client can update on the client side for guest user.
       socket.emit("join-response", { params: params });
 
@@ -140,9 +129,7 @@ const handleJoin = async (
       );
 
       const response = await addParticipant(userID, meetingID);
-      const messages = await getAllMessagesFromPrivate(meetingID)
-      params.messages = messages
-      params.meetingID = meetingID
+      params.meetingID = meetingID;
       socket.emit("join-response", { params: params });
 
       if (response.status === "error") {
@@ -152,6 +139,9 @@ const handleJoin = async (
       console.log(
         "\nrequesting to join a registered user to a public meeting.... "
       );
+
+      params.meetingID = meetingID;
+      socket.emit("join-response", { params: params });
     }
 
     // updating user object with the newly joined user.
@@ -165,67 +155,11 @@ const handleJoin = async (
 
     rooms[roomID].users.push(socket.id);
     console.log(username, "added to room:", roomID, "\n");
-    //sending all messages to newly joined registered user to public meeting
-    const messages = await getAllMessagesFromPublic(meetingID)
-    params.messages = messages
-    params.meetingID = meetingID
-    socket.emit("join-response", { params: params });
-
+    console.log(rooms, users);
   } catch (error) {
     console.log(error);
     socket.emit("error", { error: error.message });
   }
 };
 
-const handleMessages = async (
-  io: Server,
-  socket: Socket,
-  params: { message: string },
-  rooms: object,
-  users: object
-) => {
-  try {
-    let response;
-    const roomID = users[socket.id].roomID;
-    const message = params.message;
-
-    const roomType = rooms[roomID].type;
-    const meetingID = rooms[roomID].meetingID;
-    const userType = users[socket.id].type;
-    const userID = users[socket.id].userID;
-
-    console.log(roomType, userType, userID, meetingID);
-    console.log(`"` + message + '"' + " from user" + users[socket.id].userID);
-
-    if (roomType === "public" && userType === "guest") {
-      response = await saveGstToPublic(userID, meetingID, message);
-    } else if (roomType === "public" && userType === "registered") {
-      response = await saveRegToPublic(userID, meetingID, message);
-    } else if (roomType === "private" && userType === "registered") {
-      response = await saveRegToPrivate(userID, meetingID, message);
-    } else if (roomType === "private" && userType === "guest") {
-      response = await saveGstToPrivate(userID, meetingID, message);
-    }
-
-    if (response?.status === "error") {
-      console.log(response.error);
-      throw new Error("unable to send message");
-    }
-
-    const otherUsers = rooms[roomID].users; // selecting all users from your room
-
-    // sends message to other users in the particular room
-    otherUsers.forEach((user: string) => {
-      if (user !== socket.id) {
-        console.log(user, otherUsers);
-        io.to(user).emit("msg-to-client", message);
-      }
-    });
-  } catch (error) {
-    console.log(error);
-
-    socket.emit("error", { error: error });
-  }
-};
-
-export { handleJoin, handleMessages };
+export { joinMeet };

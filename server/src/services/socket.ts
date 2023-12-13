@@ -1,9 +1,8 @@
 import { Server } from "socket.io";
 import { Server as HttpServerType } from "http";
 import { logger } from "..";
-import { startMeet } from "../controllers/meetController";
-import { createGuest } from "../controllers/guestController";
-import { handleJoin, handleMessages } from "../controllers/socketController";
+import { joinMeet } from "../controllers/joinController";
+import { broadCastMessage } from "../controllers/msgController";
 
 interface joinHost {
   username: string;
@@ -35,30 +34,36 @@ const initSocketServer = (server: HttpServerType) => {
 
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
-      console.log("hello")
-      handleJoin(socket, params, rooms, users);
-      console.log(rooms, users);
+      joinMeet(socket, params, rooms, users);
     });
 
     socket.on("msg-to-server", (params) => {
-
-      const roomID = params.roomID;
-      const message = params.message;
-      const otherUsers = rooms[roomID].users; // selecting all users from your room
-      console.log(message);
-      // sends message to other users in the particular room
-      otherUsers.forEach((user: string) => {
-        if (user !== socket.id) {
-          console.log(user, otherUsers);
-          io.to(user).emit("msg-to-client", message);
-        }
-      });
-
-      handleMessages(io, socket, params, rooms, users);
-
+      broadCastMessage(io, socket, params, rooms, users);
     });
 
-    
+    socket.on("all-messages", (params) => {
+      // allMessages controller.
+    });
+
+    // video parts
+    socket.on("localDescription", (params) => {
+      const roomID = users[socket.id].roomID;
+      console.log(roomID);
+
+      const otherUsers = rooms[roomID].users;
+      const localDescription = params.description;
+      console.log(localDescription);
+
+      otherUsers.forEach((user: string) => {
+        console.log(otherUsers);
+        if (user !== socket.id) {
+          console.log(user, otherUsers);
+          io.to(user).emit("localDescription", {
+            description: localDescription,
+          });
+        }
+      });
+    });
 
     socket.on("disconnect", () => {
       // iterating on the room keys, then removing the user from the room
