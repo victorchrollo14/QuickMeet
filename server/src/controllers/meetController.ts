@@ -4,8 +4,9 @@ import { pool } from "../services/database.js";
 import { AuthenticatedRequest, verifyToken } from "../middleware/auth.js";
 import { joinParameters } from "./joinController.js";
 import { createMeeting } from "../DatabaseAPI/meeting.api.js";
-import { getUser } from "../DatabaseAPI/user.api.js";
+import { createGuest, getUser } from "../DatabaseAPI/user.api.js";
 import { addParticipant } from "../DatabaseAPI/participant.api.js";
+import { createGuestMeeting } from "../DatabaseAPI/gstmeeting.api.js";
 
 interface newJoinParams extends joinParameters {
   message: string;
@@ -17,6 +18,7 @@ const generateRoom = () => {
   return roomID;
 };
 
+// pass
 const createRegMeet = async (userID: string, roomID: string) => {
   // create a new meet in meetings table with status as initiated.
   const user = await getUser(userID);
@@ -42,31 +44,21 @@ const createRegMeet = async (userID: string, roomID: string) => {
   return data;
 };
 
+// pass
 const createGuestMeet = async (roomID: string) => {
-  const query = `INSERT INTO guests DEFAULT VALUES RETURNING guest_id`;
-  const guestUser = await pool.query(query);
-  if (guestUser.rowCount !== 1) {
-    throw new Error("Error while creating guest user");
-  }
+  const guestUser = await createGuest();
+  const guestID = guestUser.guest_id;
 
-  const guest_id = guestUser.rows[0].guest_id;
-  console.log(`created a new guest user and got guest_id: ${guest_id}`);
-
-  const query1 = `INSERT INTO guest_meetings(guest_id, room_id, status) VALUES($1, $2, $3) RETURNING meeting_id`;
-  const guestMeet = await pool.query(query1, [guest_id, roomID, "initiated"]);
-  if (guestMeet.rowCount !== 1) {
-    throw new Error("Error while creating a guest meeting");
-  }
-  const meeting_id = guestMeet.rows[0].meeting_id;
-  console.log(`${guestMeet.rowCount} guest Meet created`);
+  const guestMeet = await createGuestMeeting(guestID, roomID, "initiated");
+  console.log("created a guest meeting");
 
   const data: newJoinParams = {
     role: "host",
     roomType: "public",
-    username: "guest",
+    username: guestUser.username,
     userType: "guest",
-    meetingID: meeting_id,
-    userID: guest_id,
+    meetingID: guestMeet.meeting_id,
+    userID: guestID,
     roomID: roomID,
     message: "created a guest meeting successfully",
   };
@@ -86,6 +78,7 @@ const createMeet = async (req: AuthenticatedRequest, res: Response) => {
       const token = req.header("Authorization");
       await verifyToken(token);
       console.log("user is verified");
+
       const data = await createRegMeet(userID, roomID);
       return res.status(200).json(data);
     }
