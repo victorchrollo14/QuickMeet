@@ -32,6 +32,10 @@ const initSocketServer = (server: HttpServerType) => {
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
+    socket.on("get-room", (params) => {
+      
+    });
+
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
       joinMeet(socket, params, rooms, users);

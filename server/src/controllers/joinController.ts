@@ -1,19 +1,18 @@
 import { Socket } from "socket.io";
-import { createGuest } from "./guestController";
-import { addParticipant } from "./userController";
-import { addGuestParticipant } from "./guestController";
+import { createGuest } from "../DatabaseAPI/user.api";
+import { addParticipant } from "../DatabaseAPI/participant.api";
+import { addGuestParticipant } from "../DatabaseAPI/participant.api";
 import { startMeet } from "./meetController";
 import { logger } from "..";
 
 export interface joinParameters {
-  userID: string | null;
-  username: string | null;
-  userType: string;
-  role: string | null;
-  meetingID: string | null;
+  userID: string;
+  username: string;
+  meetingID: string;
   roomID: string;
-  roomType: string | null;
-  messages: object | null;
+  userType: "registered" | "guest";
+  role: "host" | "attendee";
+  roomType: "private" | "public";
 }
 
 const joinHost = async (
@@ -22,7 +21,7 @@ const joinHost = async (
   rooms: Object,
   users: Object
 ) => {
-  const { roomID, userID, username, role, userType, roomType, meetingID } =
+  let { roomID, userID, username, role, userType, roomType, meetingID } =
     params;
   const response = await startMeet(params);
   console.log(response);
@@ -128,13 +127,9 @@ const joinMeet = async (
         "\nrequesting to join a registered user  to a private meeting..."
       );
 
-      const response = await addParticipant(userID, meetingID);
+      const participant = await addParticipant(userID, meetingID, "attendee");
       params.meetingID = meetingID;
       socket.emit("join-response", { params: params });
-
-      if (response.status === "error") {
-        throw new Error("Internal server Error");
-      }
     } else {
       console.log(
         "\nrequesting to join a registered user to a public meeting.... "

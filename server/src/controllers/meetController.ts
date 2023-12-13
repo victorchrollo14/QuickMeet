@@ -1,8 +1,15 @@
-import { Request, Response } from "express";
-import { logger } from "../index.js";
+import { Response } from "express";
 import ShortUniqueId from "short-unique-id";
 import { pool } from "../services/database.js";
 import { AuthenticatedRequest, verifyToken } from "../middleware/auth.js";
+import { joinParameters } from "./joinController.js";
+import { createMeeting } from "../DatabaseAPI/meeting.api.js";
+import { getUser } from "../DatabaseAPI/user.api.js";
+import { addParticipant } from "../DatabaseAPI/participant.api.js";
+
+interface newJoinParams extends joinParameters {
+  message: string;
+}
 
 const generateRoom = () => {
   const { randomUUID } = new ShortUniqueId({ length: 12 });
@@ -12,32 +19,27 @@ const generateRoom = () => {
 
 const createRegMeet = async (userID: string, roomID: string) => {
   // create a new meet in meetings table with status as initiated.
-  const query = `INSERT INTO meetings(user_id, room_id, status) VALUES($1, $2, $3) RETURNING meeting_id`;
-  const createMeet = await pool.query(query, [userID, roomID, "initiated"]);
+  const user = await getUser(userID);
 
-  if (createMeet.rowCount !== 1) {
-    throw new Error("Failed to create a meet");
-  }
-  console.log(`${createMeet.rowCount} meeting added`);
+  const meetingData = await createMeeting(userID, roomID);
+  const meetingID = meetingData.meeting_id;
+  console.log(`a new meeting added`);
 
-  const meeting_id = createMeet.rows[0].meeting_id;
-  console.log(`Got back the newly created meet_id: ${meeting_id}`);
+  const addHost = await addParticipant(userID, meetingID, "host");
+  console.log(`added ${user.username} has host to participant table`);
 
-  const query1 = `INSERT INTO participants(user_id, meeting_id, role) VALUES($1, $2, $3)`;
-  const participant = await pool.query(query1, [userID, meeting_id, "host"]);
-
-  if (participant.rowCount !== 1) {
-    throw new Error("Failed to add user as host");
-  }
-  console.log(`${participant.rowCount} participant added as host`);
-
-  return {
+  const data: newJoinParams = {
     role: "host",
     roomType: "private",
-    meetingID: meeting_id,
+    userType: "registered",
+    userID: userID,
+    username: user.username,
+    meetingID: meetingID,
     roomID: roomID,
     message: `created a meet and added user has host`,
   };
+
+  return data;
 };
 
 const createGuestMeet = async (roomID: string) => {
@@ -58,14 +60,18 @@ const createGuestMeet = async (roomID: string) => {
   const meeting_id = guestMeet.rows[0].meeting_id;
   console.log(`${guestMeet.rowCount} guest Meet created`);
 
-  return {
+  const data: newJoinParams = {
     role: "host",
     roomType: "public",
+    username: "guest",
+    userType: "guest",
     meetingID: meeting_id,
     userID: guest_id,
     roomID: roomID,
     message: "created a guest meeting successfully",
   };
+
+  return data;
 };
 
 const createMeet = async (req: AuthenticatedRequest, res: Response) => {
@@ -84,9 +90,6 @@ const createMeet = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(200).json(data);
     }
 
-    // if user is guest
-    // add them to guest table, then create a meet record in guest meetings table
-    // return guest_id and roomID
     const data = await createGuestMeet(roomID);
     return res.status(200).json(data);
   } catch (error) {
