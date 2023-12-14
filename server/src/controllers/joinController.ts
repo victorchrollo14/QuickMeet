@@ -1,6 +1,10 @@
 import { Socket } from "socket.io";
 import { createGuest } from "../DatabaseAPI/user.api";
-import { addParticipant } from "../DatabaseAPI/participant.api";
+import {
+  addParticipant,
+  checkGuestParticipant,
+  checkParticipant,
+} from "../DatabaseAPI/participant.api";
 import { addGuestParticipant } from "../DatabaseAPI/participant.api";
 import { logger } from "..";
 import { ValidateParams } from "../utils/validater";
@@ -103,49 +107,18 @@ const joinMeet = async (
       });
     }
 
-    roomType = rooms[roomID].type;
-    meetingID = rooms[roomID].meetingID;
-    params.roomType = rooms[roomID].type;
-    params.meetingID = rooms[roomID].meetingID;
-
     // guest user joining public meeting.
     if (userType === "guest" && roomType === "public") {
       console.log("\nrequesting to join a guest user to public meeting....");
-
-      // registering as guest user.
-      if (!userID) {
-        const data = await createGuest();
-        userID = data.userID;
-        username = data.username;
-        params.userID = data.userID;
-        params.username = data.username;
-
-        // send back the params so client can update on the client side for guest user.
-      }
-
-      socket.emit("join-response", { params: params });
-
-      console.log(userID, username);
     }
     // guest user joining a private meeting
     else if (userType === "guest" && roomType === "private") {
       console.log("\n requesting to join a guest user to private meetings...");
 
-      // creating a guest user and setting it to userID and username
-      if (!userID) {
-        const data = await createGuest();
-        userID = data.userID;
-        username = data.username;
-        params.userID = userID;
-        params.username = username;
-      }
-
-      // send back the params so client can update on the client side for guest user.
-      socket.emit("join-response", { params: params });
-
-      const response = await addGuestParticipant(userID, meetingID);
-      if (response.status === "error") {
-        throw new Error("Error when adding guest to participants table");
+      const participant = await checkGuestParticipant(userID, meetingID);
+      if (!participant) {
+        await addGuestParticipant(userID, meetingID);
+        console.log("guest added as participant in:" + roomID);
       }
     }
     // registered user joining a private meeting
@@ -153,17 +126,15 @@ const joinMeet = async (
       console.log(
         "\nrequesting to join a registered user  to a private meeting..."
       );
-
-      const participant = await addParticipant(userID, meetingID, "attendee");
-      params.meetingID = meetingID;
-      socket.emit("join-response", { params: params });
+      const participant = await checkParticipant(userID, meetingID);
+      if (!participant) {
+        await addParticipant(userID, meetingID, "attendee");
+        console.log(`added ${username} as participant in room: ${roomID}`);
+      }
     } else {
       console.log(
         "\nrequesting to join a registered user to a public meeting.... "
       );
-
-      params.meetingID = meetingID;
-      socket.emit("join-response", { params: params });
     }
 
     // updating user object with the newly joined user.
