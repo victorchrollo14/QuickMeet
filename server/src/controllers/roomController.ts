@@ -1,5 +1,4 @@
 import { Socket } from "socket.io";
-import { joinParameters } from "./joinController";
 import { getGuestMeet } from "../DatabaseAPI/gstmeeting.api";
 import { getMeet } from "../DatabaseAPI/meeting.api";
 
@@ -9,16 +8,17 @@ interface roomParams {
   userType: "guest" | "registered";
   username: string;
 }
+
 type roomType = "public" | "private";
 type roleType = "host" | "attendee";
 
+// pass
 const getRoomData = async (socket: Socket, params: roomParams) => {
   try {
-    // now that we have added a route to create guest, client would always
-    // have the roomID, userType, userID.
     let roomType: roomType;
     let meetingID: string;
     let role: roleType;
+
     const { roomID, userType, userID, username } = params;
     const userTypeValues = ["guest", "registered"];
 
@@ -41,19 +41,22 @@ const getRoomData = async (socket: Socket, params: roomParams) => {
 
       roomType = "public";
       meetingID = meeting_id;
-      role = "attendee";
+      // role = "attendee";
 
-      if (userType === "guest" && userID === guest_id) role = "host";
+      role = userType === "guest" && userID == guest_id ? "host" : "attendee";
     } else if (meetData) {
+      console.log("inside meetData");
+
       const { meeting_id, user_id, status } = meetData;
       if (status === "ended")
         return socket.emit("error", { error: "The Meeting Has Already Ended" });
 
       roomType = "private";
       meetingID = meeting_id;
-      role = "attendee";
 
-      if (userType === "registered" && userID === user_id) role = "host";
+      console.log(userID, user_id);
+      role =
+        userType === "registered" && userID == user_id ? "host" : "attendee";
     }
 
     const data = {

@@ -33,4 +33,19 @@ const getGuestMeet = async (roomID: string) => {
   }
 };
 
-export { createGuestMeeting, getGuestMeet };
+const updateGstMeetStart = async (
+  guestID: string,
+  roomID: string,
+  status: string
+) => {
+  try {
+    const query = `UPDATE guest_meetings SET start_time=CURRENT_TIMESTAMP, status=$1 WHERE guest_id=$2 AND room_id=$3 RETURNING *`;
+    const update = (await pool.query(query, [status, guestID, roomID])).rows[0];
+    return update;
+  } catch (err) {
+    console.log(err);
+    throw new Error(err);
+  }
+};
+
+export { createGuestMeeting, getGuestMeet, updateGstMeetStart };

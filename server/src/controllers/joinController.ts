@@ -2,8 +2,13 @@ import { Socket } from "socket.io";
 import { createGuest } from "../DatabaseAPI/user.api";
 import { addParticipant } from "../DatabaseAPI/participant.api";
 import { addGuestParticipant } from "../DatabaseAPI/participant.api";
-import { startMeet } from "./meetController";
 import { logger } from "..";
+import { ValidateParams } from "../utils/validater";
+import { getMeet, updateMeetStart } from "../DatabaseAPI/meeting.api";
+import {
+  getGuestMeet,
+  updateGstMeetStart,
+} from "../DatabaseAPI/gstmeeting.api";
 
 export interface joinParameters {
   userID: string;
@@ -21,14 +26,30 @@ const joinHost = async (
   rooms: Object,
   users: Object
 ) => {
-  let { roomID, userID, username, role, userType, roomType, meetingID } =
-    params;
-  const response = await startMeet(params);
-  console.log(response);
+  try {
+    let { roomID, userID, username, role, userType, roomType, meetingID } =
+      params;
 
-  if (response?.status === "error") {
-    throw new Error("Invalid credentials");
-  } else if (response?.status === "ok") {
+    if (roomType === "private") {
+      const meetData = await getMeet(roomID);
+      if (meetData.user_id != userID)
+        return socket.emit("error", { error: "User is not the host" });
+
+      if (meetData.status !== "active") {
+        await updateMeetStart(userID, roomID, "active");
+        console.log(`updated meeting status to active, by host ${userID}`);
+      }
+    } else if (roomType === "public") {
+      const meetData = await getGuestMeet(roomID);
+      if (meetData.guest_id != userID)
+        return socket.emit("error", { error: "User is not the host" });
+
+      if (meetData.status !== "active") {
+        await updateGstMeetStart(userID, roomID, "active");
+        console.log(`updated meeting status to active, by host ${userID}`);
+      }
+    }
+
     users[socket.id] = {
       roomID: roomID,
       userID: userID,
@@ -46,9 +67,10 @@ const joinHost = async (
     rooms[roomID].users.push(socket.id);
 
     logger.info(`host added to room ${params.roomID}`);
-
-    socket.emit("join-response", { params: params });
     console.log(rooms, users);
+  } catch (err) {
+    console.log(err);
+    socket.emit("error", err.message);
   }
 };
 
@@ -59,13 +81,18 @@ const joinMeet = async (
   users: Object
 ) => {
   try {
+    const isValidParam = ValidateParams(params);
+    if (!isValidParam.isValid) {
+      return socket.emit("error", { error: isValidParam.error });
+    }
+
     let { userID, userType, roomID, username, roomType, meetingID, role } =
       params;
-
     console.log("params", params);
 
     if (role === "host") {
-      return joinHost(socket, params, rooms, users);
+      joinHost(socket, params, rooms, users);
+      return;
     }
 
     // checking if there is an active meeting with the roomID.
