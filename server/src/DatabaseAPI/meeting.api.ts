@@ -18,4 +18,15 @@ const createMeeting = async (userID: string, roomID: string) => {
   }
 };
 
-export { createMeeting };
+const getMeet = async (roomID: string) => {
+  try {
+    const query = `SELECT * FROM meetings WHERE room_id=$1`;
+    const data = (await pool.query(query, [roomID])).rows[0];
+
+    return data;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+export { createMeeting, getMeet };

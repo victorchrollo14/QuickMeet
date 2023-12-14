@@ -3,6 +3,8 @@ import { Server as HttpServerType } from "http";
 import { logger } from "..";
 import { joinMeet } from "../controllers/joinController";
 import { broadCastMessage, getAllMessages } from "../controllers/msgController";
+import { getRoomData } from "../controllers/roomController";
+import { handleGuest } from "../controllers/guestController";
 
 interface joinHost {
   username: string;
@@ -27,13 +29,16 @@ const initSocketServer = (server: HttpServerType) => {
 
   const rooms = {};
   const users = {};
-  const guests = {};
 
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
+    socket.on("create-guest", () => {
+      handleGuest(socket);
+    });
+
     socket.on("get-room", (params) => {
-      
+      getRoomData(socket, params);
     });
 
     // takes care of user and host joining the meet.
