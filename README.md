@@ -1,10 +1,11 @@
-# techTalk
+# Quickmeet 
 A Real Time Video and Chat Application which enables users to have realtime video and text chat through your browser.
 
 ## TECH STACK
 * React.js 
+* Redux
 * Express.js
-* Socket.io
+* websockets 
 * Webrtc
 * PostgresSQL
 * Google oAuth
@@ -16,3 +17,4 @@ A Real Time Video and Chat Application which enables users to have realtime vide
 * Users should be able to share their screen and camera as well.
 * Users should be able to mute/unmute themselves.
 * Users should be able exchange text messages in chat section.
+* works for both registered and unregistered users.
