@@ -5,6 +5,7 @@ import { joinMeet } from "../controllers/joinController";
 import { broadCastMessage, getAllMessages } from "../controllers/msgController";
 import { getRoomData } from "../controllers/roomController";
 import { handleGuest } from "../controllers/guestController";
+import { log } from "winston";
 
 interface joinHost {
   username: string;
@@ -44,15 +45,18 @@ const initSocketServer = (server: HttpServerType) => {
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
       joinMeet(socket, params, rooms, users);
+      console.log(users)
     });
 
     socket.on("msg-to-server", (params) => {
       broadCastMessage(io, socket, params, rooms, users);
+      console.log(rooms);
     });
 
     socket.on("all-messages", (params) => {
       // allMessages controller.
       getAllMessages(socket, params);
+      console.log(rooms);
     });
 
     // video parts

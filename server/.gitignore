@@ -25,3 +25,4 @@ dist
 *.sw?
 
 check.ts
+*.env.frontend

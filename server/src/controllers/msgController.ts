@@ -83,10 +83,10 @@ const getAllMessages = async (
 
     if (roomType === "private") {
       data = await getAllMessagesFromPrivate(meetingID);
-      console.log(data);
+      // console.log(data);
     } else if (roomType === "public") {
       data = await getAllMessagesFromPublic(meetingID);
-      console.log(data);
+      // console.log(data);
     }
 
     socket.emit("all-messages", { messsages: data });

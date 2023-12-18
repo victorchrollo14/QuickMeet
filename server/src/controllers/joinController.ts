@@ -62,16 +62,18 @@ const joinHost = async (
       type: userType,
     };
 
-    rooms[roomID] = {
-      roomID: roomID,
-      meetingID: meetingID,
-      users: [],
-      type: roomType,
-    };
+    if (!rooms[roomID])
+      rooms[roomID] = {
+        roomID: roomID,
+        meetingID: meetingID,
+        users: [],
+        type: roomType,
+      };
+
     rooms[roomID].users.push(socket.id);
 
     logger.info(`host added to room ${params.roomID}`);
-    console.log(rooms, users);
+    console.log(rooms);
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);
@@ -148,7 +150,7 @@ const joinMeet = async (
 
     rooms[roomID].users.push(socket.id);
     console.log(username, "added to room:", roomID, "\n");
-    console.log(rooms, users);
+    console.log(rooms);
   } catch (error) {
     console.log(error);
     socket.emit("error", { error: error.message });
