@@ -25,6 +25,7 @@ const broadCastMessage = async (
     const meetingID = rooms[roomID].meetingID;
     const userType = users[socket.id].type;
     const userID = users[socket.id].userID;
+    const username = users[socket.id].username;
 
     console.log(roomType, userType, userID, meetingID);
     console.log(`"` + message + '"' + " from user" + users[socket.id].userID);
@@ -54,7 +55,7 @@ const broadCastMessage = async (
     otherUsers.forEach((user: string) => {
       if (user !== socket.id) {
         console.log(user, otherUsers);
-        io.to(user).emit("msg-to-client", message);
+        io.to(user).emit("msg-to-client", { message, userID, username });
       }
     });
   } catch (err) {

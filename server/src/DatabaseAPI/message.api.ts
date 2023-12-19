@@ -3,9 +3,23 @@ import { pool } from "../services/database";
 // pass
 const getAllMessagesFromPrivate = async (meetingID: string) => {
   try {
-    const query = `SELECT * FROM messages WHERE meeting_id=$1`;
+    const query = `SELECT 
+    message_id AS "messageID",
+    CASE 
+        WHEN user_id IS NOT NULL THEN user_id
+        WHEN guest_id IS NOT NULL THEN guest_id
+    END AS "userID",
+    content AS message,
+    CASE 
+        WHEN user_id IS NOT NULL THEN (SELECT username FROM users WHERE users.user_id = messages.user_id)
+        WHEN guest_id IS NOT NULL THEN (SELECT username FROM guests WHERE guests.guest_id = messages.guest_id)
+    END AS username,
+    message_time AS time
+FROM messages
+WHERE meeting_id = $1`;
+
     const messages = (await pool.query(query, [meetingID])).rows;
-    // console.log(messages,query)
+    console.log(messages);
     return messages;
   } catch (err) {
     throw new Error(err);
@@ -15,7 +29,20 @@ const getAllMessagesFromPrivate = async (meetingID: string) => {
 // pass
 const getAllMessagesFromPublic = async (meetingID: string) => {
   try {
-    const query = `SELECT * FROM guest_messages WHERE meeting_id=$1`;
+    const query = `SELECT 
+    message_id AS "messageID",
+    CASE 
+        WHEN user_id IS NOT NULL THEN user_id
+        WHEN guest_id IS NOT NULL THEN guest_id
+    END AS "userID",
+    content AS message,
+    CASE 
+        WHEN user_id IS NOT NULL THEN (SELECT username FROM users WHERE users.user_id = guest_messages.user_id)
+        WHEN guest_id IS NOT NULL THEN (SELECT username FROM guests WHERE guests.guest_id = guest_messages.guest_id)
+    END AS username,
+    message_time AS time
+FROM guest_messages
+WHERE meeting_id = $1`;
     const messages = (await pool.query(query, [meetingID])).rows;
     // console.log(messages)
     return messages;
