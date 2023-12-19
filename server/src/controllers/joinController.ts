@@ -94,7 +94,6 @@ const joinMeet = async (
 
     let { userID, userType, roomID, username, roomType, meetingID, role } =
       params;
-    console.log("params", params);
 
     if (role === "host") {
       joinHost(socket, params, rooms, users);

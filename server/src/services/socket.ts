@@ -45,7 +45,7 @@ const initSocketServer = (server: HttpServerType) => {
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
       joinMeet(socket, params, rooms, users);
-      console.log(users)
+      console.log(users);
     });
 
     socket.on("msg-to-server", (params) => {
@@ -66,14 +66,56 @@ const initSocketServer = (server: HttpServerType) => {
 
       const otherUsers = rooms[roomID].users;
       const localDescription = params.description;
-      console.log(localDescription);
+      console.log("getting offer from: ", socket.id);
 
       otherUsers.forEach((user: string) => {
-        console.log(otherUsers);
         if (user !== socket.id) {
           console.log(user, otherUsers);
           io.to(user).emit("localDescription", {
             description: localDescription,
+          });
+        }
+      });
+    });
+
+    socket.on("remoteDescription", (params) => {
+      const roomID = users[socket.id].roomID;
+      const otherUsers = rooms[roomID].users;
+      const remoteDescription = params.description;
+      console.log("getting answer from: ", socket.id);
+
+      otherUsers.forEach((user) => {
+        if (user !== socket.id) {
+          io.to(user).emit("remoteDescription", {
+            description: remoteDescription,
+          });
+        }
+      });
+    });
+
+    socket.on("iceCandidate", (params) => {
+      const roomID = users[socket.id].roomID;
+      console.log("Getting iceCandidates from:", socket.id);
+      const otherUsers = rooms[roomID].users;
+
+      otherUsers.forEach((user) => {
+        if (user !== socket.id) {
+          io.to(user).emit("iceCandidate", {
+            cadidate: params.candidate,
+          });
+        }
+      });
+    });
+
+    socket.on("iceCandidateReply", (params) => {
+      const roomID = users[socket.id].roomID;
+      console.log("getting iceCandidate reply from:", socket.id);
+      const otherUsers = rooms[roomID].users;
+
+      otherUsers.forEach((user) => {
+        if (user !== socket.id) {
+          io.to(user).emit("iceCandidateReply", {
+            cadidate: params.candidate,
           });
         }
       });
