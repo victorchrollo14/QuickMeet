@@ -64,14 +64,14 @@ const saveRegToPrivate = async (
       );
     }
 
-    const query = `INSERT INTO messages(user_id, meeting_id, content) VALUES($1, $2, $3)`;
+    const query = `INSERT INTO messages(user_id, meeting_id, content) VALUES($1, $2, $3) RETURNING message_time AS time, message_id AS "messageID"`;
     const insertMessage = await pool.query(query, [userID, meetingID, message]);
-
     if (insertMessage.rowCount !== 1) {
       throw new Error("Unable to save Message for some reason");
     }
 
-    return { status: "ok" };
+    const data = insertMessage.rows[0];
+    return data;
   } catch (err) {
     throw new Error(err);
   }
@@ -89,18 +89,17 @@ const saveGstToPrivate = async (
         "userID or meetingID seems to be null, You can't pass a null value to it"
       );
     }
-    const query = `INSERT INTO messages(guest_id, meeting_id, content) VALUES($1, $2, $3)`;
+    const query = `INSERT INTO messages(guest_id, meeting_id, content) VALUES($1, $2, $3) RETURNING message_time AS time, message_id AS "messageID"`;
     const insertMessage = await pool.query(query, [
       guestID,
       meetingID,
       message,
     ]);
-
     if (insertMessage.rowCount !== 1) {
       throw new Error("Unable to add message to database");
     }
-
-    return { status: "ok" };
+    const data = insertMessage.rows[0];
+    return data;
   } catch (err) {
     throw new Error(err);
   }
@@ -119,14 +118,14 @@ const saveRegToPublic = async (
       );
     }
 
-    const query = `INSERT INTO guest_messages(user_id, meeting_id, content) VALUES($1, $2, $3)`;
+    const query = `INSERT INTO guest_messages(user_id, meeting_id, content) VALUES($1, $2, $3) RETURNING message_time AS time, message_id AS "messageID"`;
     const insertMessage = await pool.query(query, [userID, meetingID, message]);
-
     if (insertMessage.rowCount !== 1) {
       throw new Error("Unable to add message to database");
     }
 
-    return { status: "ok" };
+    const data = insertMessage.rows[0];
+    return data;
   } catch (err) {
     throw new Error(err);
   }
@@ -145,7 +144,7 @@ const saveGstToPublic = async (
       );
     }
 
-    const query = `INSERT INTO guest_messages(guest_id, meeting_id, content) VALUES($1, $2, $3)`;
+    const query = `INSERT INTO guest_messages(guest_id, meeting_id, content) VALUES($1, $2, $3) RETURNING message_time AS time, message_id AS "messageID"`;
     const insertMessage = await pool.query(query, [
       guestID,
       meetingID,
@@ -156,7 +155,8 @@ const saveGstToPublic = async (
       throw new Error("Unable to add message to database");
     }
 
-    return { status: "ok" };
+    const data = insertMessage.rows[0];
+    return data;
   } catch (error) {}
 };
 

@@ -44,6 +44,8 @@ const broadCastMessage = async (
       response = await saveGstToPrivate(userID, meetingID, message);
     }
 
+    const { messageID, time } = response;
+
     if (response?.status === "error") {
       console.log(response.error);
       return socket.emit("error", "Unable to send message");
@@ -55,7 +57,13 @@ const broadCastMessage = async (
     otherUsers.forEach((user: string) => {
       if (user !== socket.id) {
         console.log(user, otherUsers);
-        io.to(user).emit("msg-to-client", { message, userID, username });
+        io.to(user).emit("msg-to-client", {
+          messageID,
+          message,
+          userID,
+          username,
+          time,
+        });
       }
     });
   } catch (err) {
@@ -90,7 +98,7 @@ const getAllMessages = async (
       // console.log(data);
     }
 
-    socket.emit("all-messages", { messsages: data });
+    socket.emit("all-messages", data);
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);
