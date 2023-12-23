@@ -14,7 +14,8 @@ const broadCastMessage = async (
   socket: Socket,
   params: { message: string },
   rooms: object,
-  users: object
+  users: object,
+  callback: CallableFunction
 ) => {
   try {
     let response;
@@ -66,6 +67,8 @@ const broadCastMessage = async (
         });
       }
     });
+
+    callback({ status: "ok" });
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);

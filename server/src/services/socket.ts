@@ -48,8 +48,8 @@ const initSocketServer = (server: HttpServerType) => {
       console.log(users);
     });
 
-    socket.on("msg-to-server", (params) => {
-      broadCastMessage(io, socket, params, rooms, users);
+    socket.on("msg-to-server", (params, callback) => {
+      broadCastMessage(io, socket, params, rooms, users, callback);
       console.log(rooms);
     });
 
