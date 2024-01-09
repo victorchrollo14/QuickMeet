@@ -5,7 +5,6 @@ import { joinMeet } from "../controllers/joinController";
 import { broadCastMessage, getAllMessages } from "../controllers/msgController";
 import { getRoomData } from "../controllers/roomController";
 import { handleGuest } from "../controllers/guestController";
-import { log } from "winston";
 
 interface joinHost {
   username: string;
@@ -44,6 +43,7 @@ const initSocketServer = (server: HttpServerType) => {
 
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
+      console.log(params);
       joinMeet(socket, params, rooms, users);
       console.log(users);
     });

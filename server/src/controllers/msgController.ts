@@ -7,6 +7,7 @@ import {
   saveRegToPrivate,
   saveRegToPublic,
 } from "../DatabaseAPI/message.api";
+import { getUser } from "../DatabaseAPI/user.api";
 
 // pass
 const broadCastMessage = async (
@@ -18,7 +19,7 @@ const broadCastMessage = async (
   callback: CallableFunction
 ) => {
   try {
-    let response;
+    let response, user;
     const roomID = users[socket.id].roomID;
     const message = params.message;
 
@@ -37,15 +38,20 @@ const broadCastMessage = async (
     } else if (roomType === "public" && userType === "registered") {
       console.log("saving the registered  user message in public meeting....");
       response = await saveRegToPublic(userID, meetingID, message);
+      user = await getUser(userID);
     } else if (roomType === "private" && userType === "registered") {
       console.log("saving the registered  user message in private meeting....");
       response = await saveRegToPrivate(userID, meetingID, message);
+      user = await getUser(userID);
     } else if (roomType === "private" && userType === "guest") {
       console.log("saving the guest  user message in private meeting....");
       response = await saveGstToPrivate(userID, meetingID, message);
     }
 
-    const { messageID, time } = response;
+    const { time } = response;
+    let profilePic: string;
+    if (user) profilePic = user.profile_pic;
+    console.log(profilePic);
 
     if (response?.status === "error") {
       console.log(response.error);
@@ -59,8 +65,8 @@ const broadCastMessage = async (
       if (user !== socket.id) {
         console.log(user, otherUsers);
         io.to(user).emit("msg-to-client", {
-          messageID,
           message,
+          profilePic,
           userID,
           username,
           time,
@@ -78,11 +84,16 @@ const broadCastMessage = async (
 // pass
 const getAllMessages = async (
   socket: Socket,
-  params: { meetingID: string; roomType: string }
+  params: {
+    meetingID: string;
+    roomType: string;
+    userID: string;
+    userType: string;
+  }
 ) => {
   try {
     let data;
-    const { meetingID, roomType } = params;
+    const { meetingID, roomType, userID, userType } = params;
     console.log(`meetingID: ${meetingID}`);
     const roomTypeVal = ["public", "private"];
 

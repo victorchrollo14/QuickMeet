@@ -28,7 +28,7 @@ const joinHost = async (
   socket: Socket,
   params: joinParameters,
   rooms: Object,
-  users: Object
+  users: Object,
 ) => {
   try {
     let { roomID, userID, username, role, userType, roomType, meetingID } =
@@ -84,7 +84,7 @@ const joinMeet = async (
   socket: Socket,
   params: joinParameters,
   rooms: Object,
-  users: Object
+  users: Object,
 ) => {
   try {
     const isValidParam = ValidateParams(params);
@@ -125,7 +125,7 @@ const joinMeet = async (
     // registered user joining a private meeting
     else if (userType === "registered" && roomType === "private") {
       console.log(
-        "\nrequesting to join a registered user  to a private meeting..."
+        "\nrequesting to join a registered user  to a private meeting...",
       );
       const participant = await checkParticipant(userID, meetingID);
       if (!participant) {
@@ -134,7 +134,7 @@ const joinMeet = async (
       }
     } else {
       console.log(
-        "\nrequesting to join a registered user to a public meeting.... "
+        "\nrequesting to join a registered user to a public meeting.... ",
       );
     }
 
