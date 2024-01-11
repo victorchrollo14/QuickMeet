@@ -112,7 +112,16 @@ const getAllMessages = async (
       // console.log(data);
     }
 
-    socket.emit("all-messages", data);
+    // sorting the messages
+    const messages = data.map((item) => {
+      const newTime = new Date(item.time);
+      return { ...item, time: newTime };
+    });
+    messages.sort((a, b) => {
+      return a.time - b.time;
+    });
+
+    socket.emit("all-messages", messages);
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);

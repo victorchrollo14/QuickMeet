@@ -28,7 +28,7 @@ const joinHost = async (
   socket: Socket,
   params: joinParameters,
   rooms: Object,
-  users: Object,
+  users: Object
 ) => {
   try {
     let { roomID, userID, username, role, userType, roomType, meetingID } =
@@ -74,6 +74,11 @@ const joinHost = async (
 
     logger.info(`host added to room ${params.roomID}`);
     console.log(rooms);
+    socket.emit("join", {
+      statusCode: 200,
+      ok: true,
+      message: "successfully Joined the meet",
+    });
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);
@@ -84,7 +89,7 @@ const joinMeet = async (
   socket: Socket,
   params: joinParameters,
   rooms: Object,
-  users: Object,
+  users: Object
 ) => {
   try {
     const isValidParam = ValidateParams(params);
@@ -125,7 +130,7 @@ const joinMeet = async (
     // registered user joining a private meeting
     else if (userType === "registered" && roomType === "private") {
       console.log(
-        "\nrequesting to join a registered user  to a private meeting...",
+        "\nrequesting to join a registered user  to a private meeting..."
       );
       const participant = await checkParticipant(userID, meetingID);
       if (!participant) {
@@ -134,7 +139,7 @@ const joinMeet = async (
       }
     } else {
       console.log(
-        "\nrequesting to join a registered user to a public meeting.... ",
+        "\nrequesting to join a registered user to a public meeting.... "
       );
     }
 
@@ -150,6 +155,11 @@ const joinMeet = async (
     rooms[roomID].users.push(socket.id);
     console.log(username, "added to room:", roomID, "\n");
     console.log(rooms);
+    socket.emit("join", {
+      statusCode: 200,
+      ok: true,
+      message: "successfully joined the meet",
+    });
   } catch (error) {
     console.log(error);
     socket.emit("error", { error: error.message });

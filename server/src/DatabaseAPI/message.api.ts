@@ -3,23 +3,35 @@ import { pool } from "../services/database";
 // pass
 const getAllMessagesFromPrivate = async (meetingID: string) => {
   try {
-    const query = `SELECT 
-    message_id AS "messageID",
-    CASE 
-        WHEN user_id IS NOT NULL THEN user_id
-        WHEN guest_id IS NOT NULL THEN guest_id
-    END AS "userID",
-    content AS message,
-    CASE 
-        WHEN user_id IS NOT NULL THEN (SELECT username FROM users WHERE users.user_id = messages.user_id)
-        WHEN guest_id IS NOT NULL THEN (SELECT username FROM guests WHERE guests.guest_id = messages.guest_id)
-    END AS username,
-    message_time AS time
-FROM messages
-WHERE meeting_id = $1`;
+    const query = `SELECT                          
+    m.user_id AS "userID",
+    u.profile_pic AS "profilePic",
+    u.username,
+    m.content AS "message",
+    m.message_time AS "time"
+FROM
+    messages m
+LEFT JOIN
+    users u ON m.user_id = u.user_id
+WHERE
+    m.user_id IS NOT NULL
+    AND m.meeting_id = $1 
+
+UNION
+
+SELECT
+    m.guest_id AS "userID",
+    NULL AS "profilePic",
+    'guest' AS "username",
+    m.content AS "message",
+    m.message_time AS "time"
+FROM
+    messages m
+WHERE
+    m.guest_id IS NOT NULL
+    AND m.meeting_id = $1;`;
 
     const messages = (await pool.query(query, [meetingID])).rows;
-    console.log(messages);
     return messages;
   } catch (err) {
     throw new Error(err);
@@ -29,22 +41,34 @@ WHERE meeting_id = $1`;
 // pass
 const getAllMessagesFromPublic = async (meetingID: string) => {
   try {
-    const query = `SELECT 
-    message_id AS "messageID",
-    CASE 
-        WHEN user_id IS NOT NULL THEN user_id
-        WHEN guest_id IS NOT NULL THEN guest_id
-    END AS "userID",
-    content AS message,
-    CASE 
-        WHEN user_id IS NOT NULL THEN (SELECT username FROM users WHERE users.user_id = guest_messages.user_id)
-        WHEN guest_id IS NOT NULL THEN (SELECT username FROM guests WHERE guests.guest_id = guest_messages.guest_id)
-    END AS username,
-    message_time AS time
-FROM guest_messages
-WHERE meeting_id = $1`;
+    const query = `SELECT                          
+    m.user_id AS "userID",
+    u.profile_pic AS "profilePic",
+    u.username,
+    m.content AS "message",
+    m.message_time AS "time"
+FROM
+    guest_messages m
+LEFT JOIN
+    users u ON m.user_id = u.user_id
+WHERE
+    m.user_id IS NOT NULL
+    AND m.meeting_id = $1 
+
+UNION
+
+SELECT
+    m.guest_id AS "userID",
+    NULL AS "profilePic",
+    'guest' AS "username",
+    m.content AS "message",
+    m.message_time AS "time"
+FROM
+    guest_messages m
+WHERE
+    m.guest_id IS NOT NULL
+    AND m.meeting_id = $1;`;
     const messages = (await pool.query(query, [meetingID])).rows;
-    // console.log(messages)
     return messages;
   } catch (err) {
     throw new Error(err);
