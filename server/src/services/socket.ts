@@ -33,10 +33,6 @@ const initSocketServer = (server: HttpServerType) => {
   io.on("connection", (socket) => {
     logger.info("a user connected", socket.id);
 
-    socket.on("create-guest", () => {
-      handleGuest(socket);
-    });
-
     socket.on("get-room", (params) => {
       getRoomData(socket, params);
     });
@@ -66,11 +62,12 @@ const initSocketServer = (server: HttpServerType) => {
 
       const otherUsers = rooms[roomID].users;
       const localDescription = params.description;
-      console.log("getting offer from: ", socket.id);
+      console.log("getting offer from: ", users[socket.id].username);
+      console.log(otherUsers);
 
       otherUsers.forEach((user: string) => {
         if (user !== socket.id) {
-          console.log(user, otherUsers);
+          console.log("sending offer to " + users[user].username);
           io.to(user).emit("localDescription", {
             description: localDescription,
           });
@@ -82,7 +79,7 @@ const initSocketServer = (server: HttpServerType) => {
       const roomID = users[socket.id].roomID;
       const otherUsers = rooms[roomID].users;
       const remoteDescription = params.description;
-      console.log("getting answer from: ", socket.id);
+      console.log("getting answer from: ", users[socket.id].username);
 
       otherUsers.forEach((user) => {
         if (user !== socket.id) {
@@ -95,7 +92,7 @@ const initSocketServer = (server: HttpServerType) => {
 
     socket.on("iceCandidate", (params) => {
       const roomID = users[socket.id].roomID;
-      console.log("Getting iceCandidates from:", socket.id);
+      // console.log("Getting iceCandidates from:", socket.id);
       const otherUsers = rooms[roomID].users;
 
       otherUsers.forEach((user) => {
@@ -109,7 +106,7 @@ const initSocketServer = (server: HttpServerType) => {
 
     socket.on("iceCandidateReply", (params) => {
       const roomID = users[socket.id].roomID;
-      console.log("getting iceCandidate reply from:", socket.id);
+      // console.log("getting iceCandidate reply from:", socket.id);
       const otherUsers = rooms[roomID].users;
 
       otherUsers.forEach((user) => {
