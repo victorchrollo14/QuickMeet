@@ -40,7 +40,7 @@ const initSocketServer = (server: HttpServerType) => {
     // takes care of user and host joining the meet.
     socket.on("join", (params) => {
       console.log(params);
-      joinMeet(socket, params, rooms, users);
+      joinMeet(io, socket, params, rooms, users);
       console.log(users);
     });
 
@@ -56,66 +56,46 @@ const initSocketServer = (server: HttpServerType) => {
     });
 
     // video parts
-    socket.on("localDescription", (params) => {
-      const roomID = users[socket.id].roomID;
-      console.log(roomID);
+    socket.on("localDescription", ({ description, to }) => {
+      console.log(
+        "getting offer from: ",
+        users[socket.id].username,
+        "\nand sending to: ",
+        users[to].username
+      );
 
-      const otherUsers = rooms[roomID].users;
-      const localDescription = params.description;
-      console.log("getting offer from: ", users[socket.id].username);
-      console.log(otherUsers);
-
-      otherUsers.forEach((user: string) => {
-        if (user !== socket.id) {
-          console.log("sending offer to " + users[user].username);
-          io.to(user).emit("localDescription", {
-            description: localDescription,
-          });
-        }
-      });
+      socket.to(to).emit("localDescription", { description, from: socket.id });
     });
 
     socket.on("remoteDescription", (params) => {
-      const roomID = users[socket.id].roomID;
-      const otherUsers = rooms[roomID].users;
-      const remoteDescription = params.description;
-      console.log("getting answer from: ", users[socket.id].username);
+      const { description, to } = params;
 
-      otherUsers.forEach((user) => {
-        if (user !== socket.id) {
-          io.to(user).emit("remoteDescription", {
-            description: remoteDescription,
-          });
-        }
-      });
+      console.log(
+        "getting answer from: ",
+        users[socket.id].username,
+        "sending to: ",
+        users[to].username
+      );
+
+      socket.to(to).emit("remoteDescription", { description, from: socket.id });
+      console.log("sent answer");
     });
 
     socket.on("iceCandidate", (params) => {
-      const roomID = users[socket.id].roomID;
-      // console.log("Getting iceCandidates from:", socket.id);
-      const otherUsers = rooms[roomID].users;
-
-      otherUsers.forEach((user) => {
-        if (user !== socket.id) {
-          io.to(user).emit("iceCandidate", {
-            cadidate: params.candidate,
-          });
-        }
-      });
+      const { candidate, to } = params;
+      console.log("iceCandidate to: ", users[to].username);
+      socket.to(to).emit("iceCandidate", { candidate, from: socket.id });
     });
 
     socket.on("iceCandidateReply", (params) => {
-      const roomID = users[socket.id].roomID;
-      // console.log("getting iceCandidate reply from:", socket.id);
-      const otherUsers = rooms[roomID].users;
-
-      otherUsers.forEach((user) => {
-        if (user !== socket.id) {
-          io.to(user).emit("iceCandidateReply", {
-            cadidate: params.candidate,
-          });
-        }
-      });
+      const { candidate, to } = params;
+      console.log(
+        "getting iceCandidateReply from: ",
+        users[socket.id].username,
+        "sending to: ",
+        users[to].username
+      );
+      socket.to(to).emit("iceCandidateReply", { candidate, from: socket.id });
     });
 
     socket.on("disconnect", () => {
@@ -125,6 +105,8 @@ const initSocketServer = (server: HttpServerType) => {
           (user: string) => user != socket.id
         );
       });
+
+      // deleting user from users object as well.
       delete users[socket.id];
       console.log(socket.id, "user disconnected");
     });

@@ -1,4 +1,4 @@
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { createGuest } from "../DatabaseAPI/user.api";
 import {
   addParticipant,
@@ -25,6 +25,7 @@ export interface joinParameters {
 }
 
 const joinHost = async (
+  io: Server,
   socket: Socket,
   params: joinParameters,
   rooms: Object,
@@ -79,6 +80,24 @@ const joinHost = async (
       ok: true,
       message: "successfully Joined the meet",
     });
+
+    const userList = {};
+    rooms[roomID].users.forEach((socketId) => {
+      const { username, userID, type } = users[socketId];
+
+      userList[socketId] = {
+        pc: null,
+        streams: null,
+        username,
+        userID,
+        userType: type,
+      };
+    });
+
+    const allUsers = rooms[roomID].users;
+    allUsers.forEach((user) => {
+      io.to(user).emit("userList", userList);
+    });
   } catch (err) {
     console.log(err);
     socket.emit("error", err.message);
@@ -86,6 +105,7 @@ const joinHost = async (
 };
 
 const joinMeet = async (
+  io: Server,
   socket: Socket,
   params: joinParameters,
   rooms: Object,
@@ -101,7 +121,7 @@ const joinMeet = async (
       params;
 
     if (role === "host") {
-      joinHost(socket, params, rooms, users);
+      joinHost(io, socket, params, rooms, users);
       return;
     }
 
@@ -159,6 +179,24 @@ const joinMeet = async (
       statusCode: 200,
       ok: true,
       message: "successfully joined the meet",
+    });
+
+    const userList = {};
+    rooms[roomID].users.forEach((socketId) => {
+      const { username, userID, type } = users[socketId];
+
+      userList[socketId] = {
+        pc: null,
+        streams: null,
+        username,
+        userID,
+        userType: type,
+      };
+    });
+
+    const allUsers = rooms[roomID].users;
+    allUsers.forEach((user) => {
+      io.to(user).emit("userList", userList);
     });
   } catch (error) {
     console.log(error);
