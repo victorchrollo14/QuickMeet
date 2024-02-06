@@ -100,7 +100,7 @@ const joinHost = async (
     });
   } catch (err) {
     console.log(err);
-    socket.emit("error", err.message);
+    socket.emit("error", { error: "Internal Server Error" });
   }
 };
 
@@ -200,7 +200,7 @@ const joinMeet = async (
     });
   } catch (error) {
     console.log(error);
-    socket.emit("error", { error: error.message });
+    socket.emit("error", { error: "Internal Server Error" });
   }
 };
 

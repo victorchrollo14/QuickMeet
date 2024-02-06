@@ -67,7 +67,7 @@ const io = initSocketServer(server);
 const runServer = async () => {
   try {
     await connectDB();
-    console.log("connect to database");
+    console.log("connect to the database");
 
     server.listen(PORT, () => {
       console.log(`Server running on :${PORT}`);

@@ -2,7 +2,7 @@ import { Pool } from "pg";
 
 const config = {
   user: "postgres",
-  host: "localhost",
+  host: "quickmeet",
   database: "quickmeet",
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT) || 5432,

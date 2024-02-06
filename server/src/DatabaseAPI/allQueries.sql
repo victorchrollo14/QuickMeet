@@ -21,7 +21,7 @@ CREATE TABLE meetings(
         start_time <= end_time
         OR end_time IS NULL
     ),
-    FOREIGN KEY(user_id) REFERENCES users(user_id),
+    FOREIGN KEY(user_id) REFERENCES users(user_id)
 );
 
 -- enum type for role
