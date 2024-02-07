@@ -13,6 +13,8 @@ const getAccessToken = async (code: any) => {
       redirect_uri: "http://localhost:5173/auth/google",
       grant_type: "authorization_code",
     };
+
+    console.log(values);
     const params = new URLSearchParams(values);
 
     const response = await fetch(URL, {
@@ -24,7 +26,7 @@ const getAccessToken = async (code: any) => {
     });
 
     const data = await response.json();
-
+    console.log(data);
     return data;
   } catch (error) {
     throw new Error(error);
@@ -34,6 +36,7 @@ const getAccessToken = async (code: any) => {
 const googleAuth = async (req: Request, res: Response) => {
   try {
     const { code } = req.query;
+    console.log(code);
     const { access_token } = await getAccessToken(code);
 
     // get user data
@@ -51,6 +54,7 @@ const googleAuth = async (req: Request, res: Response) => {
     // takes care of storing user data and login
     login(req, res, data);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "internal server error" });
   }
 };

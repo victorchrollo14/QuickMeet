@@ -4,6 +4,7 @@
   "description": "",
   "main": "node src/index.ts",
   "scripts": {
+    "seed": "node dist/utils/seed.js",
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,12 +1,15 @@
 import { Pool } from "pg";
+import "dotenv/config";
 
 const config = {
   user: "postgres",
-  host: "quickmeet",
+  host: process.env.DB_HOST || "postgres_db",
   database: "quickmeet",
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT) || 5432,
 };
+
+console.log(config);
 
 const pool = new Pool(config);
 

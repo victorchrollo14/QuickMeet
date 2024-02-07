@@ -2,5 +2,7 @@ node_modules
 dist
 logs
 .env*
+.gitignore
 Dockerfile
+compose.yml
 check.ts

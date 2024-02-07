@@ -1,4 +1,4 @@
-FROM mhart/alpine-node
+FROM bitnami/node:20.11.0-debian-11-r3
 
 WORKDIR /app
 

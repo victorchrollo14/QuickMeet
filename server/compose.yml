@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:14.10
+    container_name: postgres_db
+
+    environment:
+      POSTGRES_PASSWORD: Victor142$
+      POSTGRES_USER: postgres
+      POSTGRES_DB: quickmeet
+
+    ports:
+      - 5432:5432
+    volumes:
+      - pgData:/var/lib/postgresql/pgData
+    networks:
+      - quickmeetNet
+
+  quickmeet:
+    container_name: quickmeet
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    networks:
+      - quickmeetNet
+    ports:
+      - 3000:3000
+
+volumes:
+  pgData:
+
+
+networks:
+  quickmeetNet:
