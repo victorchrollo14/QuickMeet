@@ -1,13 +1,10 @@
 services:
   postgres:
-    image: postgres:14.10
+    image: postgres:14.10-bullseye
     container_name: postgres_db
-
     environment:
-      POSTGRES_PASSWORD: Victor142$
-      POSTGRES_USER: postgres
-      POSTGRES_DB: quickmeet
-
+      - POSTGRES_PASSWORD = Victor142$
+      - POSTGRES_DB = quickmeet
     ports:
       - 5432:5432
     volumes:
@@ -28,7 +25,6 @@ services:
 
 volumes:
   pgData:
-
 
 networks:
   quickmeetNet:
