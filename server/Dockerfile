@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY ./package*.json .
 RUN npm install
-COPY ./dist ./dist 
+COPY --from=0 /app/dist ./dist 
 
 CMD [ "npm", "start" ]
 

@@ -1,13 +1,12 @@
 import { Pool } from "pg";
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
 
 const config = {
-  host: "ep-late-snow-a5d7byfl.us-east-2.aws.neon.tech", // Neon DB hostname
+  host: process.env.DB_HOST, // Neon DB hostname
   port: 5432, // Default Postgres port
-  user: "neondb_owner", // Your Neon DB username
-  password: "Di1olzGO8JkL", // Your Neon DB password
-  database: "neondb", // Your Neon database name
+  user: process.env.DB_USER, // Your Neon DB username
+  password: process.env.DB_PASSWORD, // Your Neon DB password
+  database: process.env.DB_NAME, // Your Neon database name
   ssl: true,
 };
 console.log(config);

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 if [ "$1" == "build" ]; then
-  docker build -t quickmeet-backend .
+  docker build -t victorchrollo14/quickmeet-backend .
 fi
 
 if [ "$1" == "run" ]; then
-  docker run -p 3000:3000 --env-file .env quickmeet-backend:latest
+  docker run -p 3000:3000 --env-file .env victorchrollo14/quickmeet-backend:latest
 fi
 
 # stopping the docker container

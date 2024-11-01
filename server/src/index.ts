@@ -29,15 +29,16 @@ if (process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),
-    })
+    }),
   );
 }
 
 const corsOptions = {
   origin: [
     "https://quickmeet.tech",
+    "http://quickmeet.victorimmanuel.me",
     "https://quickmeet-omega.vercel.app",
-    "http://localhost:5173"
+    "http://localhost:5173",
   ],
   credentials: true,
   optionSuccessStatus: 200,

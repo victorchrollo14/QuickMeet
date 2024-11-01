@@ -1,0 +1,122 @@
+# hat all stuff to do here.
+# 2 deployments  for frontend and backend
+# 1 loadbalancer service for both the frontend and backend service
+# secrets for both of them and mount the secrets in pods where the frontend and backend runs on.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickmeet-frontend-deployment
+  namespace: quickmeet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickmeet-frontend
+  template:
+    metadata:
+      labels:
+        app: quickmeet-frontend
+    spec:
+      containers:
+        - name: quickmeet-frontend
+          image: victorchrollo14/quickmeet-frontend
+          ports:
+            - containerPort: 5173
+          volumeMounts:
+            - name: quickmeet-volume
+              mountPath: "/app/.env"
+              subPath: ".env"
+      volumes:
+        - name: quickmeet-volume
+          secret:
+            secretName: quickmeet-frontend-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: quickmeet
+spec:
+  type: ClusterIP
+  selector:
+    app: quickmeet-frontend
+  ports:
+    - protocol: TCP
+      port: 5173
+      targetPort: 5173
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickmeet-backend-deployment
+  namespace: quickmeet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickmeet-backend
+  template:
+    metadata:
+      labels:
+        app: quickmeet-backend
+    spec:
+      containers:
+        - name: quickmeet-backend
+          image: victorchrollo14/quickmeet-backend
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: quickmeet-backend-volume
+              mountPath: "/app/.env"
+              subPath: ".env"
+      volumes:
+        - name: quickmeet-backend-volume
+          secret:
+            secretName: quickmeet-backend-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: quickmeet
+spec:
+  type: ClusterIP
+  selector:
+    app: quickmeet-backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quickmeet-ingress
+  namespace: quickmeet
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: quickmeet.victorimmanuel.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 5173
+    - host: api.quickmeet.victorimmanuel.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 3000

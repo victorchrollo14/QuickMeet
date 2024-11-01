@@ -20,6 +20,8 @@ const initSocketServer = (server: HttpServerType) => {
   const io = new Server(server, {
     cors: {
       origin: [
+        "https://quickmeet.victorimmanuel.me",
+        "http://quickmeet.victorimmanuel.me",
         "http://localhost:5173",
         "https://quickmeet.tech",
         "https://quickmeet-omega.vercel.app",
@@ -61,7 +63,7 @@ const initSocketServer = (server: HttpServerType) => {
         "getting offer from: ",
         users[socket.id].username,
         "\nand sending to: ",
-        users[to].username
+        users[to].username,
       );
 
       socket.to(to).emit("localDescription", { description, from: socket.id });
@@ -74,7 +76,7 @@ const initSocketServer = (server: HttpServerType) => {
         "getting answer from: ",
         users[socket.id].username,
         "sending to: ",
-        users[to].username
+        users[to].username,
       );
 
       socket.to(to).emit("remoteDescription", { description, from: socket.id });
@@ -93,7 +95,7 @@ const initSocketServer = (server: HttpServerType) => {
         "getting iceCandidateReply from: ",
         users[socket.id].username,
         "sending to: ",
-        users[to].username
+        users[to].username,
       );
       socket.to(to).emit("iceCandidateReply", { candidate, from: socket.id });
     });
@@ -102,7 +104,7 @@ const initSocketServer = (server: HttpServerType) => {
       // iterating on the room keys, then removing the user from the room
       Object.keys(rooms).map((roomID) => {
         rooms[roomID].users = rooms[roomID].users.filter(
-          (user: string) => user != socket.id
+          (user: string) => user != socket.id,
         );
       });
 
