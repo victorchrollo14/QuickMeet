@@ -37,6 +37,7 @@ const corsOptions = {
   origin: [
     "https://quickmeet.tech",
     "http://quickmeet.victorimmanuel.me",
+    "https://quickmeet.victorimmanuel.me",
     "https://quickmeet-omega.vercel.app",
     "http://localhost:5173",
   ],

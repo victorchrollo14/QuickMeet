@@ -10,7 +10,7 @@ fi
 
 # stopping the docker container
 if [ "$1" == 'stop' ]; then
-  CONTAINER_ID=$(docker ps -q --filter "ancestor=quickmeet-backend")
+  CONTAINER_ID=$(docker ps -q --filter "ancestor=victorchrollo14/quickmeet-backend")
   if [ -n "$CONTAINER_ID" ]; then
     docker stop "$CONTAINER_ID"
   else
